@@ -26,6 +26,9 @@ INSTALL_WINGS=false
 CONFIGURE_WINGS=false
 UPDATE_MODE=false
 UNINSTALL_MODE=false
+DELETE_WINGS_MODE=false
+DELETE_DB_MODE=false
+DELETE_PANEL_MODE=false
 
 DOMAIN=""
 SSL_MODE="letsencrypt" # letsencrypt, selfsigned, http
@@ -576,22 +579,83 @@ update_all() {
     fi
 }
 
-uninstall_pterodactyl() {
-    log_warn "You are about to uninstall Pterodactyl Panel & Wings!"
-    read -r -p "Are you sure you want to completely remove Pterodactyl? [y/N]: " confirm_rm
-    if [[ "$confirm_rm" =~ ^[Yy]$ ]]; then
-        systemctl stop wings pteroq 2>/dev/null || true
-        systemctl disable wings pteroq 2>/dev/null || true
-        rm -f /etc/systemd/system/wings.service /etc/systemd/system/pteroq.service
-        systemctl daemon-reload
-        rm -f /etc/cron.d/pterodactyl
-        rm -f /etc/nginx/sites-enabled/pterodactyl.conf /etc/nginx/sites-available/pterodactyl.conf
-        systemctl restart nginx 2>/dev/null || true
-        rm -rf /var/www/pterodactyl
-        rm -rf /etc/pterodactyl
-        rm -f /usr/local/bin/wings
-        log_success "Pterodactyl Panel and Wings removed."
+delete_wings() {
+    log_warn "You are about to delete / uninstall the Wings daemon."
+    if [[ "$UNATTENDED" != "true" ]]; then
+        read -r -p "Are you sure you want to completely remove Wings? [y/N]: " confirm_w
+        if [[ ! "$confirm_w" =~ ^[Yy]$ ]]; then
+            log_info "Aborted Wings deletion."
+            return 0
+        fi
     fi
+
+    log_info "Stopping and removing Wings daemon..."
+    systemctl stop wings 2>/dev/null || true
+    systemctl disable wings 2>/dev/null || true
+    rm -f /etc/systemd/system/wings.service
+    systemctl daemon-reload
+    rm -rf /etc/pterodactyl
+    rm -f /usr/local/bin/wings /usr/local/bin/wings.tmp
+    log_success "Wings daemon, configuration, and service successfully deleted."
+}
+
+delete_database() {
+    log_warn "DANGER: You are about to DROP the Pterodactyl database and user!"
+    log_warn "All users, servers, and node allocations will be PERMANENTLY ERASED!"
+    if [[ "$UNATTENDED" != "true" ]]; then
+        read -r -p "Type 'DELETE' to confirm dropping the database: " confirm_db
+        if [[ "$confirm_db" != "DELETE" ]]; then
+            log_info "Aborted database deletion."
+            return 0
+        fi
+    fi
+
+    log_info "Dropping database '${DB_NAME}' and user '${DB_USER}'..."
+    mariadb -u root <<EOF
+DROP DATABASE IF EXISTS \`${DB_NAME}\`;
+DROP USER IF EXISTS '${DB_USER}'@'127.0.0.1';
+DROP USER IF EXISTS '${DB_USER}'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+    log_success "Database '${DB_NAME}' and user '${DB_USER}' dropped successfully."
+}
+
+delete_panel() {
+    log_warn "You are about to delete / uninstall the Pterodactyl Panel files and services."
+    if [[ "$UNATTENDED" != "true" ]]; then
+        read -r -p "Are you sure you want to remove the Panel? [y/N]: " confirm_p
+        if [[ ! "$confirm_p" =~ ^[Yy]$ ]]; then
+            log_info "Aborted Panel deletion."
+            return 0
+        fi
+    fi
+
+    log_info "Stopping and removing Panel services..."
+    systemctl stop pteroq 2>/dev/null || true
+    systemctl disable pteroq 2>/dev/null || true
+    rm -f /etc/systemd/system/pteroq.service
+    systemctl daemon-reload
+    rm -f /etc/cron.d/pterodactyl
+    rm -f /etc/nginx/sites-enabled/pterodactyl.conf /etc/nginx/sites-available/pterodactyl.conf
+    systemctl restart nginx 2>/dev/null || true
+    rm -rf /var/www/pterodactyl
+    log_success "Pterodactyl Panel files, services, and Nginx vhost removed."
+}
+
+uninstall_pterodactyl() {
+    log_warn "You are about to perform a FULL UNINSTALL of Pterodactyl!"
+    log_warn "This will remove Panel, Wings, and the Database!"
+    if [[ "$UNATTENDED" != "true" ]]; then
+        read -r -p "Are you sure you want to completely PURGE Pterodactyl? [y/N]: " confirm_all
+        if [[ ! "$confirm_all" =~ ^[Yy]$ ]]; then
+            log_info "Aborted full uninstall."
+            return 0
+        fi
+    fi
+    delete_wings
+    delete_panel
+    delete_database
+    log_success "Full Pterodactyl purge completed."
 }
 
 gather_interactive_inputs() {
@@ -698,6 +762,18 @@ parse_args() {
                 UNINSTALL_MODE=true
                 shift
                 ;;
+            --delete-wings)
+                DELETE_WINGS_MODE=true
+                shift
+                ;;
+            --delete-db|--delete-database)
+                DELETE_DB_MODE=true
+                shift
+                ;;
+            --delete-panel)
+                DELETE_PANEL_MODE=true
+                shift
+                ;;
             --configure-wings)
                 CONFIGURE_WINGS=true
                 shift
@@ -736,7 +812,10 @@ parse_args() {
                 echo "  -a, --all, --both     Install both Panel and Wings"
                 echo "  -u, --update          Update Panel and Wings"
                 echo "      --configure-wings Helper to configure Wings with token"
-                echo "      --uninstall       Uninstall Pterodactyl Panel and Wings"
+                echo "      --delete-wings    Delete / uninstall Wings daemon only"
+                echo "      --delete-db       Delete / drop Pterodactyl database only"
+                echo "      --delete-panel    Delete / uninstall Panel only"
+                echo "      --uninstall       Complete uninstall (purge everything)"
                 echo "  -y, --unattended      Run without prompting (auto-generates passwords)"
                 echo "      --domain <fqdn>   Set Panel Domain / FQDN"
                 echo "      --email <email>   Set Admin & SSL Email"
@@ -762,9 +841,12 @@ interactive_menu() {
     echo -e "  [3] Install Both (Panel + Wings All-in-One)"
     echo -e "  [4] Configure Wings with Panel Token"
     echo -e "  [5] Update Panel & Wings"
-    echo -e "  [6] Uninstall / Remove Pterodactyl"
+    echo -e "  [6] Delete / Uninstall Wings Daemon Only"
+    echo -e "  [7] Delete / Drop Pterodactyl Database Only"
+    echo -e "  [8] Delete / Uninstall Panel Only"
+    echo -e "  [9] Complete Uninstall (Purge Everything)"
     echo -e "  [0] Exit\n"
-    read -r -p "Enter choice [0-6]: " choice
+    read -r -p "Enter choice [0-9]: " choice
 
     case "$choice" in
         1) INSTALL_PANEL=true ;;
@@ -772,7 +854,10 @@ interactive_menu() {
         3) INSTALL_PANEL=true; INSTALL_WINGS=true ;;
         4) CONFIGURE_WINGS=true ;;
         5) UPDATE_MODE=true ;;
-        6) UNINSTALL_MODE=true ;;
+        6) DELETE_WINGS_MODE=true ;;
+        7) DELETE_DB_MODE=true ;;
+        8) DELETE_PANEL_MODE=true ;;
+        9) UNINSTALL_MODE=true ;;
         0) exit 0 ;;
         *) log_error "Invalid selection."; exit 1 ;;
     esac
@@ -786,6 +871,21 @@ main() {
         interactive_menu
     else
         parse_args "$@"
+    fi
+
+    if [[ "$DELETE_WINGS_MODE" == "true" ]]; then
+        delete_wings
+        exit 0
+    fi
+
+    if [[ "$DELETE_DB_MODE" == "true" ]]; then
+        delete_database
+        exit 0
+    fi
+
+    if [[ "$DELETE_PANEL_MODE" == "true" ]]; then
+        delete_panel
+        exit 0
     fi
 
     if [[ "$UNINSTALL_MODE" == "true" ]]; then

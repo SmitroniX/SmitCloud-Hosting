@@ -73,7 +73,10 @@ Select an action to perform:
   [3] Install Both (Panel + Wings All-in-One)
   [4] Configure Wings with Panel Token
   [5] Update Panel & Wings
-  [6] Uninstall / Remove Pterodactyl
+  [6] Delete / Uninstall Wings Daemon Only
+  [7] Delete / Drop Pterodactyl Database Only
+  [8] Delete / Uninstall Panel Only
+  [9] Complete Uninstall (Purge Everything)
   [0] Exit
 ```
 
@@ -109,6 +112,21 @@ sudo bash install.sh -w
 sudo bash install.sh -u
 ```
 
+### Delete Wings Only:
+```bash
+sudo bash install.sh --delete-wings
+```
+
+### Delete Database Only:
+```bash
+sudo bash install.sh --delete-db
+```
+
+### Delete Panel Only:
+```bash
+sudo bash install.sh --delete-panel
+```
+
 ### Available Flags:
 
 | Flag | Shorthand | Description |
@@ -118,7 +136,10 @@ sudo bash install.sh -u
 | `--wings` | `-w` | Install Pterodactyl Wings daemon only |
 | `--update` | `-u` | Update existing Panel & Wings to latest releases |
 | `--configure-wings`| | Interactive helper to link node token to Wings |
-| `--uninstall` | | Remove Panel, Wings, and background services |
+| `--delete-wings` | | Delete / uninstall Wings daemon only |
+| `--delete-db` | | Delete / drop Pterodactyl database only |
+| `--delete-panel` | | Delete / uninstall Panel only |
+| `--uninstall` | | Complete uninstall — purge Panel, Wings, database, and services |
 | `--unattended` | `-y` | Run unattended without interactive questions |
 | `--domain <fqdn>` | | Domain name or public IP for the Panel |
 | `--email <email>` | | Administrator and SSL email address |
