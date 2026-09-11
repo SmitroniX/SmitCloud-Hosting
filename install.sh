@@ -13,9 +13,9 @@ SCRIPT_VERSION="1.2.0"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
+WHITE='\033[1;37m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
@@ -59,12 +59,11 @@ print_banner() {
  | |_) | __/ _ \ '__/ _ \ / _` |/ _` |/ __| __| | | | |
  |  __/| ||  __/ | | (_) | (_| | (_| | (__| |_| |_| |_|
  |_|    \__\___|_|  \___/ \__,_|\__,_|\___|\__|_|\__, |
-                                                 |___/ 
-         SmitCloud Hosting - Panel & Wings Installer v1.2.0
 EOF
+    echo -e "${WHITE}${BOLD}         SmitCloud Hosting - Panel & Wings Installer v${SCRIPT_VERSION}${NC}\n"
     echo -e "${NC}"
     echo -e "${WHITE}  Official Open-Source Engine: ${CYAN}pterodactyl.io${NC}"
-    echo -e "${WHITE}  System Arch: ${GREEN}$(uname -m)${NC} | OS: ${GREEN}$(lsb_release -ds 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d '\"')${NC}"
+    echo -e "${WHITE}  System Arch: ${GREEN}$(uname -m)${NC} | OS: ${GREEN}$(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '\"')${NC}"
     echo -e "${CYAN}======================================================${NC}\n"
 }
 
@@ -78,10 +77,10 @@ check_root() {
 
 detect_system() {
     if [[ -f /etc/os-release ]]; then
+        # shellcheck source=/dev/null
         . /etc/os-release
         OS=$ID
         OS_VER=$VERSION_ID
-        OS_CODENAME=$VERSION_CODENAME
     else
         log_error "Unsupported operating system: /etc/os-release not found."
         exit 1
@@ -120,7 +119,7 @@ detect_system() {
 }
 
 generate_random_password() {
-    tr -dc 'A-Za-z0-9!#%*+=' < /dev/urandom | head -c 24
+    tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 24
 }
 
 install_base_dependencies() {
@@ -144,7 +143,7 @@ install_php() {
         need_php_repo=true
     else
         PHP_CURR_VER=$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')
-        if [[ $(echo "$PHP_CURR_VER < 8.2" | bc -l 2>/dev/null || awk -v v="$PHP_CURR_VER" 'BEGIN{print (v<8.2)?1:0}') -eq 1 ]]; then
+        if awk -v v="$PHP_CURR_VER" 'BEGIN{exit (v < 8.2)?0:1}'; then
             need_php_repo=true
         fi
     fi
@@ -271,8 +270,8 @@ install_panel() {
         --admin=1 \
         --no-interaction
 
-    # Fix ownership
-    chown -R www-data:www-data /var/www/pterodactyl/*
+    # Fix ownership (including hidden files like .env)
+    chown -R www-data:www-data /var/www/pterodactyl
 
     # Cron Job
     log_info "Configuring Scheduled Tasks Cronjob..."
@@ -469,8 +468,9 @@ install_wings() {
 
     mkdir -p /etc/pterodactyl
     log_info "Downloading official open-source Wings binary for ${WINGS_ARCH}..."
-    curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_${WINGS_ARCH}"
-    chmod u+x /usr/local/bin/wings
+    curl -L -o /usr/local/bin/wings.tmp "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_${WINGS_ARCH}"
+    chmod u+x /usr/local/bin/wings.tmp
+    mv -f /usr/local/bin/wings.tmp /usr/local/bin/wings
 
     log_info "Configuring Wings systemd service..."
     cat > /etc/systemd/system/wings.service << 'EOF'
@@ -558,7 +558,7 @@ update_all() {
         php artisan view:clear
         php artisan config:clear
         php artisan migrate --seed --force
-        chown -R www-data:www-data /var/www/pterodactyl/*
+        chown -R www-data:www-data /var/www/pterodactyl
         php artisan queue:restart
         php artisan up
         systemctl restart pteroq.service
@@ -568,8 +568,9 @@ update_all() {
     if [[ -f "/usr/local/bin/wings" ]]; then
         log_info "Updating Wings daemon..."
         systemctl stop wings || true
-        curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_${WINGS_ARCH}"
-        chmod u+x /usr/local/bin/wings
+        curl -L -o /usr/local/bin/wings.tmp "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_${WINGS_ARCH}"
+        chmod u+x /usr/local/bin/wings.tmp
+        mv -f /usr/local/bin/wings.tmp /usr/local/bin/wings
         systemctl restart wings
         log_success "Wings successfully updated."
     fi
