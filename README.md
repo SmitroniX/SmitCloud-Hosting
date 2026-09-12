@@ -60,7 +60,7 @@ Running `sudo bash install.sh` without arguments launches the guided wizard:
  |  __/| ||  __/ | | (_) | (_| | (_| | (__| |_| |_| |_|
  |_|    \__\___|_|  \___/ \__,_|\__,_|\___|\__|_|\__, |
                                                  |___/ 
-         One-Command Panel & Wings Installer v1.2.0
+         SmitCloud Hosting - Panel & Wings Installer v1.3.0
 
   Official Open-Source Engine: pterodactyl.io
   System Arch: aarch64 | OS: Ubuntu 24.04.5 LTS
@@ -68,15 +68,17 @@ Running `sudo bash install.sh` without arguments launches the guided wizard:
 
 Select an action to perform:
 
-  [1] Install Pterodactyl Panel
+  [1] Install Pterodactyl Panel (with SmitCloud Theme & Minecraft Tools)
   [2] Install Pterodactyl Wings (Daemon)
   [3] Install Both (Panel + Wings All-in-One)
   [4] Configure Wings with Panel Token
-  [5] Update Panel & Wings
-  [6] Delete / Uninstall Wings Daemon Only
-  [7] Delete / Drop Pterodactyl Database Only
-  [8] Delete / Uninstall Panel Only
-  [9] Complete Uninstall (Purge Everything)
+  [5] Install Game Egg Library (Popular Games: Rust, Valheim, ARK, etc.)
+  [6] Install Paymenter Billing System (Client Portal & Auto-Billing)
+  [7] Update Panel & Wings
+  [8] Delete / Uninstall Wings Daemon Only
+  [9] Delete / Drop Pterodactyl Database Only
+  [10] Delete / Uninstall Panel Only
+  [11] Complete Uninstall (Purge Everything)
   [0] Exit
 ```
 
@@ -97,14 +99,24 @@ sudo bash install.sh -a \
   -y
 ```
 
-### Install Panel Only:
+### Install Panel Only (Includes SmitCloud Theme & Minecraft Tools):
 ```bash
 sudo bash install.sh -p --domain panel.example.com --email admin@example.com -y
 ```
 
-### Install Wings Only:
+### Install Wings Daemon Only:
 ```bash
 sudo bash install.sh -w
+```
+
+### Install Game Egg Library (Palworld, Rust, Valheim, ARK, CS2, FiveM, etc.):
+```bash
+sudo bash install.sh --install-eggs
+```
+
+### Install Paymenter Billing System & Client Portal:
+```bash
+sudo bash install.sh --paymenter
 ```
 
 ### Update Both:
@@ -132,8 +144,10 @@ sudo bash install.sh --delete-panel
 | Flag | Shorthand | Description |
 | :--- | :--- | :--- |
 | `--all` / `--both` | `-a` | Install both Panel & Wings |
-| `--panel` | `-p` | Install Pterodactyl Panel only |
+| `--panel` | `-p` | Install Pterodactyl Panel (with SmitCloud Theme & Minecraft Tools) |
 | `--wings` | `-w` | Install Pterodactyl Wings daemon only |
+| `--install-eggs` | | Install Game Egg Library (Palworld, Rust, Valheim, ARK, CS2, etc.) |
+| `--paymenter` | | Install Paymenter Billing System & Client Portal |
 | `--update` | `-u` | Update existing Panel & Wings to latest releases |
 | `--configure-wings`| | Interactive helper to link node token to Wings |
 | `--delete-wings` | | Delete / uninstall Wings daemon only |
@@ -176,7 +190,7 @@ Once Wings and Panel are installed:
 
 ---
 
-## 🎮 Minecraft Server Features: Plugins & Player Manager
+## 🎮 Minecraft Server Features: Plugins, Player Manager & Config Editor
 
 For Minecraft game servers, the panel includes dedicated management tabs in the server navigation bar:
 
@@ -190,6 +204,47 @@ For Minecraft game servers, the panel includes dedicated management tabs in the 
 - **Whitelist Management**: View whitelisted players with live Minecraft avatars, add/remove players, and toggle Whitelist ON/OFF.
 - **Server Operators (OPs)**: View current operators with their permission levels, grant OP, and revoke OP.
 - **Bans (Players & IPs)**: View banned players and banned IP addresses with ban reasons, issue bans, and unban/pardon with one click.
+
+### ⚙️ Visual `server.properties` Editor (`/minecraft/properties`)
+- **Categorized Controls**: Properties organized into intuitive sections: General, World, Spawning, Player, Performance, and RCON.
+- **Interactive Form Elements**: Toggle switches for boolean options, dropdown menus for gamemodes/difficulty, and bounded number inputs for ports, limits, and view distances.
+- **Direct Sync**: Edits save directly to `server.properties` with validation and backup formatting.
+
+---
+
+## 🥚 Game Egg Library Auto-Installer
+
+Easily install the most popular community game eggs directly from the installer menu or with `--install-eggs`:
+- **Palworld**: Dedicated multiplayer server egg.
+- **Rust & Rust Staging**: High-performance Rust server egg with auto-wipe support.
+- **Valheim**: Vanilla and modded Valheim dedicated servers.
+- **ARK: Survival Evolved**: Full SteamCMD ARK dedicated server.
+- **Counter-Strike 2 (CS2)**: Official Source 2 dedicated server egg.
+- **Project Zomboid**: Multiplayer survival server.
+- **Terraria**: TShock and Vanilla Terraria servers.
+- **FiveM (GTA V)**: CitizenFX multiplayer server egg.
+- **Purpur & Paper**: Optimized modern Minecraft server eggs.
+
+Eggs are automatically sorted into clean Nests with all variables, Docker images, and startup scripts pre-configured.
+
+---
+
+## 💳 Paymenter Billing & Client Portal Integration
+
+Turn your Pterodactyl setup into a complete hosting business with integrated **Paymenter**:
+- **Automated Deployments**: When a client purchases a server, Paymenter uses the Pterodactyl Application API to automatically create the user and spin up their game server container.
+- **Full Client Dashboard**: Invoicing, recurring billing, support tickets, and service management.
+- **Flexible Deployment**: Run Paymenter on a custom subdomain (e.g. `billing.yourdomain.com`) with Let's Encrypt SSL, or on port `8090`.
+- **System Services**: Configured with dedicated Nginx vhost, `paymenter.service` queue worker, and cron schedule.
+
+---
+
+## ☁️ SmitCloud Custom Branding & Theme
+
+The installer pre-packages a sleek, modern hosting theme:
+- **Branded Login Screen**: SmitCloud logo, modern blue cloud styling, and custom title cards.
+- **Application Identity**: Consistent `SmitCloud Hosting` branding across browser tabs, navigation headers, and footers.
+- **Pre-Compiled Bundle**: Compiled with Webpack 5 for near-instant deployment without requiring Node.js or Yarn build steps on customer servers.
 
 ---
 

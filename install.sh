@@ -7,7 +7,7 @@
 
 set -o pipefail
 
-SCRIPT_VERSION="1.2.0"
+SCRIPT_VERSION="1.3.0"
 
 # Color Codes
 RED='\033[0;31m'
@@ -24,6 +24,8 @@ UNATTENDED=false
 INSTALL_PANEL=false
 INSTALL_WINGS=false
 CONFIGURE_WINGS=false
+INSTALL_EGGS=false
+INSTALL_PAYMENTER=false
 UPDATE_MODE=false
 UNINSTALL_MODE=false
 DELETE_WINGS_MODE=false
@@ -198,9 +200,13 @@ CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` /*!40100 DEFAULT CHARACTER SET utf8
 CREATE USER IF NOT EXISTS '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';
 ALTER USER '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';
 GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'127.0.0.1' WITH GRANT OPTION;
+
+CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';
+ALTER USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';
+GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'localhost' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 EOF
-    log_success "Database '${DB_NAME}' and user '${DB_USER}' ready."
+    log_success "Database '${DB_NAME}' and user '${DB_USER}' (both 127.0.0.1 and localhost) ready."
 }
 
 install_panel() {
@@ -307,6 +313,9 @@ EOF
     systemctl enable --now pteroq.service
     systemctl restart pteroq.service
     log_success "Pterodactyl Panel installed and Queue Worker active."
+
+    # Automatically apply SmitCloud branding and Minecraft tools
+    apply_smitcloud_customizations
 }
 
 configure_nginx_and_ssl() {
@@ -579,6 +588,364 @@ update_all() {
     fi
 }
 
+apply_smitcloud_customizations() {
+    log_step "Applying SmitCloud Hosting Branding & Minecraft Tools..."
+
+    if [[ ! -d "/var/www/pterodactyl" ]]; then
+        log_warn "Panel directory /var/www/pterodactyl not found. Skipping customizations."
+        return 0
+    fi
+
+    # 1. Update APP_NAME in .env
+    if grep -q "^APP_NAME=" /var/www/pterodactyl/.env; then
+        sed -i 's/^APP_NAME=.*/APP_NAME="SmitCloud Hosting"/' /var/www/pterodactyl/.env
+    else
+        sed -i '1i APP_NAME="SmitCloud Hosting"' /var/www/pterodactyl/.env
+    fi
+
+    local SCRIPT_DIR
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local CUSTOM_DIR="${SCRIPT_DIR}/custom"
+    local REPO_RAW="https://raw.githubusercontent.com/SmitroniX/SmitCloud-Hosting/main"
+
+    log_info "Injecting SmitCloud templates and Minecraft modules..."
+    mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties
+    mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/players
+    mkdir -p /var/www/pterodactyl/resources/scripts/api/server/minecraft
+
+    if [[ -d "${CUSTOM_DIR}" ]]; then
+        [[ -f "${CUSTOM_DIR}/branding/LoginFormContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/branding/LoginFormContainer.tsx" /var/www/pterodactyl/resources/scripts/components/auth/
+        [[ -f "${CUSTOM_DIR}/branding/PageContentBlock.tsx" ]] && cp -f "${CUSTOM_DIR}/branding/PageContentBlock.tsx" /var/www/pterodactyl/resources/scripts/components/elements/
+        [[ -f "${CUSTOM_DIR}/branding/wrapper.blade.php" ]] && cp -f "${CUSTOM_DIR}/branding/wrapper.blade.php" /var/www/pterodactyl/resources/views/templates/
+        [[ -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/
+        [[ -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/players.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/players.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        [[ -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" /var/www/pterodactyl/resources/scripts/routers/routes.ts
+    else
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/auth/LoginFormContainer.tsx "${REPO_RAW}/custom/branding/LoginFormContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/elements/PageContentBlock.tsx "${REPO_RAW}/custom/branding/PageContentBlock.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/views/templates/wrapper.blade.php "${REPO_RAW}/custom/branding/wrapper.blade.php" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/PropertiesEditorContainer.tsx "${REPO_RAW}/custom/minecraft/properties/PropertiesEditorContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/PlayerManagerContainer.tsx "${REPO_RAW}/custom/minecraft/players/PlayerManagerContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/players.ts "${REPO_RAW}/custom/minecraft/api/players.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/routes.ts "${REPO_RAW}/custom/minecraft/routes/routes.ts" || true
+    fi
+
+    # Deploy pre-compiled frontend assets
+    log_info "Deploying pre-compiled SmitCloud frontend bundle..."
+    if [[ -f "${CUSTOM_DIR}/assets.tar.gz" ]]; then
+        tar -xzf "${CUSTOM_DIR}/assets.tar.gz" -C /var/www/pterodactyl/public/
+    else
+        if curl -sSL --connect-timeout 15 -o /tmp/smitcloud_assets.tar.gz "${REPO_RAW}/custom/assets.tar.gz"; then
+            tar -xzf /tmp/smitcloud_assets.tar.gz -C /var/www/pterodactyl/public/
+            rm -f /tmp/smitcloud_assets.tar.gz
+        fi
+    fi
+
+    cd /var/www/pterodactyl || return 0
+    php artisan view:clear 2>/dev/null || true
+    php artisan config:clear 2>/dev/null || true
+    chown -R www-data:www-data /var/www/pterodactyl
+
+    log_success "SmitCloud Branding and Minecraft Tools applied!"
+}
+
+install_egg_library() {
+    log_step "Installing Game Egg Library (Popular Community Eggs)..."
+
+    if [[ ! -d "/var/www/pterodactyl" || ! -f "/var/www/pterodactyl/artisan" ]]; then
+        log_error "Pterodactyl Panel is not installed at /var/www/pterodactyl! Please install the Panel first."
+        return 1
+    fi
+
+    local EGG_TMP_DIR
+    EGG_TMP_DIR=$(mktemp -d)
+    log_info "Downloading popular game eggs (Palworld, Rust, Valheim, ARK, CS2, Terraria, FiveM, Purpur)..."
+
+    local EGGS=(
+        "https://raw.githubusercontent.com/pelican-eggs/eggs/master/game_eggs/steamcmd_servers/rust/rust_staging/egg-rust-staging.json|Rust|egg-rust.json"
+        "https://raw.githubusercontent.com/pelican-eggs/eggs/master/game_eggs/steamcmd_servers/palworld/egg-palworld.json|Popular Games|egg-palworld.json"
+        "https://raw.githubusercontent.com/pelican-eggs/eggs/master/game_eggs/steamcmd_servers/valheim/valheim_vanilla/egg-valheim.json|Popular Games|egg-valheim.json"
+        "https://raw.githubusercontent.com/pelican-eggs/eggs/master/game_eggs/steamcmd_servers/ark_survival_evolved/egg-ark--survival-evolved.json|Popular Games|egg-ark.json"
+        "https://raw.githubusercontent.com/pelican-eggs/eggs/master/game_eggs/steamcmd_servers/counter_strike/counter_strike_2/egg-counter--strike2.json|Source Engine|egg-cs2.json"
+        "https://raw.githubusercontent.com/pelican-eggs/eggs/master/game_eggs/steamcmd_servers/project_zomboid/egg-project-zomboid.json|Popular Games|egg-project-zomboid.json"
+        "https://raw.githubusercontent.com/pelican-eggs/eggs/master/game_eggs/terraria/tshock/egg-tshock.json|Popular Games|egg-tshock.json"
+        "https://raw.githubusercontent.com/pelican-eggs/eggs/master/game_eggs/gta/fivem/egg-five-m.json|Popular Games|egg-fivem.json"
+        "https://raw.githubusercontent.com/pelican-eggs/eggs/master/game_eggs/minecraft/java/purpur/egg-purpur.json|Minecraft|egg-purpur.json"
+    )
+
+    for item in "${EGGS[@]}"; do
+        IFS='|' read -r url _ filename <<< "$item"
+        curl -sSL --connect-timeout 10 --max-time 30 -o "${EGG_TMP_DIR}/${filename}" "$url" || true
+    done
+
+    cat << 'PHP_EGG_SCRIPT' > "${EGG_TMP_DIR}/import_eggs.php"
+<?php
+require '/var/www/pterodactyl/vendor/autoload.php';
+$app = require_once '/var/www/pterodactyl/bootstrap/app.php';
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
+
+use Pterodactyl\Models\Nest;
+use Pterodactyl\Models\Egg;
+use Pterodactyl\Services\Nests\NestCreationService;
+use Pterodactyl\Services\Eggs\Sharing\EggImporterService;
+use Illuminate\Http\UploadedFile;
+
+$nestService = app(NestCreationService::class);
+$importer = app(EggImporterService::class);
+$dir = $argv[1];
+
+$nestMap = [
+    'egg-rust.json' => 'Rust',
+    'egg-palworld.json' => 'Popular Games',
+    'egg-valheim.json' => 'Popular Games',
+    'egg-ark.json' => 'Popular Games',
+    'egg-cs2.json' => 'Source Engine',
+    'egg-project-zomboid.json' => 'Popular Games',
+    'egg-tshock.json' => 'Popular Games',
+    'egg-fivem.json' => 'Popular Games',
+    'egg-purpur.json' => 'Minecraft',
+];
+
+foreach (glob("$dir/*.json") as $file) {
+    $data = json_decode(file_get_contents($file), true);
+    if (!$data || !isset($data['name'])) continue;
+    $base = basename($file);
+    $targetNestName = $nestMap[$base] ?? 'Popular Games';
+
+    $nest = Nest::where('name', $targetNestName)->first();
+    if (!$nest) {
+        try {
+            $nest = $nestService->handle([
+                'name' => $targetNestName,
+                'description' => $targetNestName . ' Servers',
+                'author' => 'support@smitronix.dev',
+            ]);
+        } catch (\Throwable $e) {
+            continue;
+        }
+    }
+
+    $existing = Egg::where('nest_id', $nest->id)->where('name', $data['name'])->first();
+    if ($existing) {
+        echo "[INFO] Egg '{$data['name']}' already installed in {$nest->name}. Skipping.\n";
+        continue;
+    }
+
+    try {
+        $uploaded = new UploadedFile($file, $base, 'application/json', null, true);
+        $egg = $importer->handle($uploaded, $nest->id);
+        echo "[SUCCESS] Imported egg: {$data['name']} (ID: {$egg->id}) into {$nest->name}\n";
+    } catch (\Throwable $e) {
+        echo "[WARNING] Could not import {$data['name']}: " . $e->getMessage() . "\n";
+    }
+}
+PHP_EGG_SCRIPT
+
+    php "${EGG_TMP_DIR}/import_eggs.php" "$EGG_TMP_DIR"
+    rm -rf "$EGG_TMP_DIR"
+    log_success "Game Egg Library installation complete!"
+}
+
+install_paymenter() {
+    log_step "Installing Paymenter Billing System..."
+
+    local PAYMENTER_DOMAIN=""
+    local PAYMENTER_PORT="8090"
+    local PAYMENTER_DB_PASS
+    PAYMENTER_DB_PASS=$(generate_random_password)
+
+    if [[ "$UNATTENDED" != "true" ]]; then
+        echo -e "\n${BOLD}${CYAN}--- Paymenter Billing System Setup ---${NC}"
+        echo -e "You can run Paymenter on a dedicated domain/subdomain (e.g. billing.yourdomain.com)"
+        echo -e "or on a custom port (e.g. http://your-server-ip:8090)."
+        read -r -p "Enter Domain for Paymenter (leave blank for port 8090): " PAYMENTER_DOMAIN
+    fi
+
+    # Database setup
+    log_info "Configuring Paymenter MariaDB database..."
+    mariadb -u root <<EOF
+CREATE DATABASE IF NOT EXISTS \`paymenter\` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */;
+CREATE USER IF NOT EXISTS 'paymenter'@'127.0.0.1' IDENTIFIED BY '${PAYMENTER_DB_PASS}';
+ALTER USER 'paymenter'@'127.0.0.1' IDENTIFIED BY '${PAYMENTER_DB_PASS}';
+GRANT ALL PRIVILEGES ON \`paymenter\`.* TO 'paymenter'@'127.0.0.1' WITH GRANT OPTION;
+
+CREATE USER IF NOT EXISTS 'paymenter'@'localhost' IDENTIFIED BY '${PAYMENTER_DB_PASS}';
+ALTER USER 'paymenter'@'localhost' IDENTIFIED BY '${PAYMENTER_DB_PASS}';
+GRANT ALL PRIVILEGES ON \`paymenter\`.* TO 'paymenter'@'localhost' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+EOF
+
+    # Download Paymenter
+    mkdir -p /var/www/paymenter
+    cd /var/www/paymenter || exit 1
+    log_info "Downloading latest Paymenter release..."
+    curl -Lo paymenter.tar.gz https://github.com/Paymenter/Paymenter/releases/latest/download/paymenter.tar.gz
+    tar -xzf paymenter.tar.gz
+    rm -f paymenter.tar.gz
+    chmod -R 755 storage/* bootstrap/cache/
+
+    cp .env.example .env
+    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader -n -q
+
+    php artisan key:generate --force
+    php artisan storage:link --force
+
+    local APP_URL="http://127.0.0.1:${PAYMENTER_PORT}"
+    if [[ -n "$PAYMENTER_DOMAIN" ]]; then
+        APP_URL="https://${PAYMENTER_DOMAIN}"
+    fi
+
+    # Configure .env
+    sed -i "s|^APP_URL=.*|APP_URL=${APP_URL}|" .env
+    sed -i "s|^DB_DATABASE=.*|DB_DATABASE=paymenter|" .env
+    sed -i "s|^DB_USERNAME=.*|DB_USERNAME=paymenter|" .env
+    sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=${PAYMENTER_DB_PASS}|" .env
+    sed -i "s|^CACHE_DRIVER=.*|CACHE_DRIVER=redis|" .env
+    sed -i "s|^SESSION_DRIVER=.*|SESSION_DRIVER=redis|" .env
+    sed -i "s|^QUEUE_CONNECTION=.*|QUEUE_CONNECTION=redis|" .env
+
+    log_info "Running Paymenter database migrations & seeds..."
+    php artisan migrate --force --seed
+
+    log_info "Creating Paymenter administrator..."
+    local P_USER="${ADMIN_USER:-admin}"
+    local P_EMAIL="${ADMIN_EMAIL:-admin@smitronix.dev}"
+    local P_PASS="${ADMIN_PASS:-SmitCloud2026Secure}"
+
+    php artisan p:user:create \
+        --username="${P_USER}" \
+        --email="${P_EMAIL}" \
+        --password="${P_PASS}" \
+        --admin=1 \
+        --no-interaction 2>/dev/null || true
+
+    chown -R www-data:www-data /var/www/paymenter
+
+    # Queue Worker
+    cat > /etc/systemd/system/paymenter.service << EOF
+[Unit]
+Description=Paymenter Queue Worker
+After=redis-server.service
+
+[Service]
+User=www-data
+Group=www-data
+Restart=always
+ExecStart=/usr/bin/php /var/www/paymenter/artisan queue:work
+StartLimitInterval=180
+StartLimitBurst=30
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl daemon-reload
+    systemctl enable --now paymenter.service
+    systemctl restart paymenter.service
+
+    # Cron
+    cat > /etc/cron.d/paymenter << 'EOF'
+* * * * * www-data /usr/bin/php /var/www/paymenter/artisan schedule:run >> /dev/null 2>&1
+EOF
+    chmod 0644 /etc/cron.d/paymenter
+
+    # Nginx
+    PHP_SOCK=$(find /run/php/ -name "php*-fpm.sock" 2>/dev/null | head -n 1)
+    PHP_SOCK=${PHP_SOCK:-"/run/php/php8.3-fpm.sock"}
+
+    if [[ -n "$PAYMENTER_DOMAIN" ]]; then
+        cat > /etc/nginx/sites-available/paymenter.conf << EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${PAYMENTER_DOMAIN};
+    return 301 https://\$server_name\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name ${PAYMENTER_DOMAIN};
+
+    root /var/www/paymenter/public;
+    index index.html index.htm index.php;
+    charset utf-8;
+
+    ssl_certificate /etc/letsencrypt/live/${PAYMENTER_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${PAYMENTER_DOMAIN}/privkey.pem;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:${PHP_SOCK};
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        fastcgi_intercept_errors off;
+        fastcgi_buffer_size 16k;
+        fastcgi_buffers 4 16k;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+EOF
+    else
+        cat > /etc/nginx/sites-available/paymenter.conf << EOF
+server {
+    listen ${PAYMENTER_PORT};
+    listen [::]:${PAYMENTER_PORT};
+    server_name _;
+
+    root /var/www/paymenter/public;
+    index index.html index.htm index.php;
+    charset utf-8;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:${PHP_SOCK};
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        fastcgi_intercept_errors off;
+        fastcgi_buffer_size 16k;
+        fastcgi_buffers 4 16k;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+EOF
+        ufw allow "${PAYMENTER_PORT}/tcp" 2>/dev/null || true
+    fi
+
+    ln -sf /etc/nginx/sites-available/paymenter.conf /etc/nginx/sites-enabled/paymenter.conf
+    systemctl reload nginx
+
+    log_success "Paymenter Billing System installed successfully!"
+    echo -e "\n${BOLD}${GREEN}Paymenter Access Details:${NC}"
+    echo -e "  URL:       ${CYAN}${APP_URL}${NC}"
+    echo -e "  Username:  ${CYAN}${P_USER}${NC}"
+    echo -e "  Email:     ${CYAN}${P_EMAIL}${NC}"
+    echo -e "  Password:  ${YELLOW}${P_PASS}${NC}"
+    echo -e "  Pterodactyl Linking:"
+    echo -e "    1. Log in to Paymenter Admin -> Extensions -> Pterodactyl."
+    echo -e "    2. Enter your Pterodactyl URL (${CYAN}${PANEL_URL:-'https://hosting.smitronix.dev'}${NC})."
+    echo -e "    3. Create an Application API key in Pterodactyl Admin -> Application API."
+    echo -e "    4. Paste the API key into Paymenter to automate server deployments on purchase!\n"
+}
+
 delete_wings() {
     log_warn "You are about to delete / uninstall the Wings daemon."
     if [[ "$UNATTENDED" != "true" ]]; then
@@ -778,6 +1145,14 @@ parse_args() {
                 CONFIGURE_WINGS=true
                 shift
                 ;;
+            --install-eggs)
+                INSTALL_EGGS=true
+                shift
+                ;;
+            --paymenter|--billing|--install-billing)
+                INSTALL_PAYMENTER=true
+                shift
+                ;;
             --domain)
                 DOMAIN="$2"
                 shift 2
@@ -807,11 +1182,13 @@ parse_args() {
                 echo "Usage: sudo bash install.sh [OPTIONS]"
                 echo ""
                 echo "Options:"
-                echo "  -p, --panel           Install Pterodactyl Panel"
+                echo "  -p, --panel           Install Pterodactyl Panel (with SmitCloud Theme & Minecraft Tools)"
                 echo "  -w, --wings           Install Pterodactyl Wings"
                 echo "  -a, --all, --both     Install both Panel and Wings"
                 echo "  -u, --update          Update Panel and Wings"
                 echo "      --configure-wings Helper to configure Wings with token"
+                echo "      --install-eggs    Install Game Egg Library (Popular Games: Rust, Valheim, ARK, etc.)"
+                echo "      --paymenter       Install Paymenter Billing & Client Portal"
                 echo "      --delete-wings    Delete / uninstall Wings daemon only"
                 echo "      --delete-db       Delete / drop Pterodactyl database only"
                 echo "      --delete-panel    Delete / uninstall Panel only"
@@ -836,28 +1213,32 @@ parse_args() {
 interactive_menu() {
     print_banner
     echo -e "${BOLD}Select an action to perform:${NC}\n"
-    echo -e "  [1] Install Pterodactyl Panel"
+    echo -e "  [1] Install Pterodactyl Panel (with SmitCloud Theme & Minecraft Tools)"
     echo -e "  [2] Install Pterodactyl Wings (Daemon)"
     echo -e "  [3] Install Both (Panel + Wings All-in-One)"
     echo -e "  [4] Configure Wings with Panel Token"
-    echo -e "  [5] Update Panel & Wings"
-    echo -e "  [6] Delete / Uninstall Wings Daemon Only"
-    echo -e "  [7] Delete / Drop Pterodactyl Database Only"
-    echo -e "  [8] Delete / Uninstall Panel Only"
-    echo -e "  [9] Complete Uninstall (Purge Everything)"
+    echo -e "  [5] Install Game Egg Library (Popular Games: Rust, Valheim, ARK, etc.)"
+    echo -e "  [6] Install Paymenter Billing System (Client Portal & Auto-Billing)"
+    echo -e "  [7] Update Panel & Wings"
+    echo -e "  [8] Delete / Uninstall Wings Daemon Only"
+    echo -e "  [9] Delete / Drop Pterodactyl Database Only"
+    echo -e "  [10] Delete / Uninstall Panel Only"
+    echo -e "  [11] Complete Uninstall (Purge Everything)"
     echo -e "  [0] Exit\n"
-    read -r -p "Enter choice [0-9]: " choice
+    read -r -p "Enter choice [0-11]: " choice
 
     case "$choice" in
         1) INSTALL_PANEL=true ;;
         2) INSTALL_WINGS=true ;;
         3) INSTALL_PANEL=true; INSTALL_WINGS=true ;;
         4) CONFIGURE_WINGS=true ;;
-        5) UPDATE_MODE=true ;;
-        6) DELETE_WINGS_MODE=true ;;
-        7) DELETE_DB_MODE=true ;;
-        8) DELETE_PANEL_MODE=true ;;
-        9) UNINSTALL_MODE=true ;;
+        5) INSTALL_EGGS=true ;;
+        6) INSTALL_PAYMENTER=true ;;
+        7) UPDATE_MODE=true ;;
+        8) DELETE_WINGS_MODE=true ;;
+        9) DELETE_DB_MODE=true ;;
+        10) DELETE_PANEL_MODE=true ;;
+        11) UNINSTALL_MODE=true ;;
         0) exit 0 ;;
         *) log_error "Invalid selection."; exit 1 ;;
     esac
@@ -871,6 +1252,18 @@ main() {
         interactive_menu
     else
         parse_args "$@"
+    fi
+
+    if [[ "$INSTALL_EGGS" == "true" ]]; then
+        install_egg_library
+        exit 0
+    fi
+
+    if [[ "$INSTALL_PAYMENTER" == "true" ]]; then
+        install_base_dependencies
+        install_php
+        install_paymenter
+        exit 0
     fi
 
     if [[ "$DELETE_WINGS_MODE" == "true" ]]; then
