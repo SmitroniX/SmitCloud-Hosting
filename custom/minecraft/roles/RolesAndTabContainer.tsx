@@ -30,6 +30,7 @@ import {
     assignPlayerRank,
     launchLuckPermsEditor,
     generateTabConfig,
+    generateTabGroupsConfig,
     sendServerCommand,
     removeRolesAndTabSuite,
     resetRolesAndTabToDefault,
@@ -186,6 +187,8 @@ export default () => {
             clearFlashes('roles-tab');
             const tabYaml = generateTabConfig(settings);
             await saveFileContents(server.uuid, '/plugins/TAB/config.yml', tabYaml);
+            const groupsYaml = generateTabGroupsConfig();
+            await saveFileContents(server.uuid, '/plugins/TAB/groups.yml', groupsYaml);
             await sendServerCommand(server.uuid, 'tab reload');
             addFlash({
                 key: 'roles-tab',
