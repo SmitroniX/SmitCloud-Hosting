@@ -672,6 +672,24 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/minecraft/api/modpacks.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/modpacks.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/modpacks
         [[ -f "${CUSTOM_DIR}/minecraft/modpacks/ModpackManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/modpacks/ModpackManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/modpacks/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/motd.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/motd.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/motd
+        [[ -f "${CUSTOM_DIR}/minecraft/motd/MOTDStudioContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/motd/MOTDStudioContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/motd/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/doctor.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/doctor.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/doctor
+        [[ -f "${CUSTOM_DIR}/minecraft/doctor/CrashDoctorContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/doctor/CrashDoctorContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/doctor/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/moderation.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/moderation.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/moderation
+        [[ -f "${CUSTOM_DIR}/minecraft/moderation/ModerationContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/moderation/ModerationContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/moderation/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/datapacks.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/datapacks.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/datapacks
+        [[ -f "${CUSTOM_DIR}/minecraft/datapacks/DatapackManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/datapacks/DatapackManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/datapacks/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/optimizer.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/optimizer.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/optimizer
+        [[ -f "${CUSTOM_DIR}/minecraft/optimizer/OptimizerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/optimizer/OptimizerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/optimizer/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/map.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/map.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/map
+        [[ -f "${CUSTOM_DIR}/minecraft/map/LiveMapContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/map/LiveMapContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/map/
         [[ -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" /var/www/pterodactyl/resources/scripts/routers/routes.ts
         [[ -f "${CUSTOM_DIR}/minecraft/routes/ServerRouter.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/ServerRouter.tsx" /var/www/pterodactyl/resources/scripts/routers/ServerRouter.tsx
     else
@@ -719,6 +737,24 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/modpacks.ts "${REPO_RAW}/custom/minecraft/api/modpacks.ts" || true
         mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/modpacks
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/modpacks/ModpackManagerContainer.tsx "${REPO_RAW}/custom/minecraft/modpacks/ModpackManagerContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/motd.ts "${REPO_RAW}/custom/minecraft/api/motd.ts" || true
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/motd
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/motd/MOTDStudioContainer.tsx "${REPO_RAW}/custom/minecraft/motd/MOTDStudioContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/doctor.ts "${REPO_RAW}/custom/minecraft/api/doctor.ts" || true
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/doctor
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/doctor/CrashDoctorContainer.tsx "${REPO_RAW}/custom/minecraft/doctor/CrashDoctorContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/moderation.ts "${REPO_RAW}/custom/minecraft/api/moderation.ts" || true
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/moderation
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/moderation/ModerationContainer.tsx "${REPO_RAW}/custom/minecraft/moderation/ModerationContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/datapacks.ts "${REPO_RAW}/custom/minecraft/api/datapacks.ts" || true
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/datapacks
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/datapacks/DatapackManagerContainer.tsx "${REPO_RAW}/custom/minecraft/datapacks/DatapackManagerContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/optimizer.ts "${REPO_RAW}/custom/minecraft/api/optimizer.ts" || true
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/optimizer
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/optimizer/OptimizerContainer.tsx "${REPO_RAW}/custom/minecraft/optimizer/OptimizerContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/map.ts "${REPO_RAW}/custom/minecraft/api/map.ts" || true
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/map
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/map/LiveMapContainer.tsx "${REPO_RAW}/custom/minecraft/map/LiveMapContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/routes.ts "${REPO_RAW}/custom/minecraft/routes/routes.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/ServerRouter.tsx "${REPO_RAW}/custom/minecraft/routes/ServerRouter.tsx" || true
     fi

@@ -25,6 +25,12 @@ import DDoSProtectionContainer from '@/components/server/minecraft/ddos/DDoSProt
 import DomainManagerContainer from '@/components/server/minecraft/domains/DomainManagerContainer';
 import ModManagerContainer from '@/components/server/minecraft/mods/ModManagerContainer';
 import ModpackManagerContainer from '@/components/server/minecraft/modpacks/ModpackManagerContainer';
+import MOTDStudioContainer from '@/components/server/minecraft/motd/MOTDStudioContainer';
+import CrashDoctorContainer from '@/components/server/minecraft/doctor/CrashDoctorContainer';
+import ModerationContainer from '@/components/server/minecraft/moderation/ModerationContainer';
+import DatapackManagerContainer from '@/components/server/minecraft/datapacks/DatapackManagerContainer';
+import OptimizerContainer from '@/components/server/minecraft/optimizer/OptimizerContainer';
+import LiveMapContainer from '@/components/server/minecraft/map/LiveMapContainer';
 
 // Each of the router files is already code split out appropriately — so
 // all of the items above will only be loaded in when that router is loaded.
@@ -205,6 +211,42 @@ export default {
             permission: 'allocation.*',
             name: 'Custom Domains',
             component: DomainManagerContainer,
+        },
+        {
+            path: '/minecraft/motd',
+            permission: 'file.*',
+            name: 'MOTD & Icon Studio',
+            component: MOTDStudioContainer,
+        },
+        {
+            path: '/minecraft/doctor',
+            permission: 'file.*',
+            name: 'Crash Doctor',
+            component: CrashDoctorContainer,
+        },
+        {
+            path: '/minecraft/moderation',
+            permission: 'file.*',
+            name: 'Moderation & Whitelist',
+            component: ModerationContainer,
+        },
+        {
+            path: '/minecraft/datapacks',
+            permission: 'file.*',
+            name: 'Datapacks',
+            component: DatapackManagerContainer,
+        },
+        {
+            path: '/minecraft/optimizer',
+            permission: 'file.*',
+            name: 'JVM Optimizer',
+            component: OptimizerContainer,
+        },
+        {
+            path: '/minecraft/map',
+            permission: 'file.*',
+            name: '3D Live Map',
+            component: LiveMapContainer,
         },
         {
             path: '/settings',

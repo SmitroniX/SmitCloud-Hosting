@@ -76,6 +76,12 @@ export default () => {
         { path: '/minecraft/health', name: '📊 Health & TPS', permission: null },
         { path: '/minecraft/ddos', name: '🛡️ DDoS Shield', permission: 'file.*' },
         { path: '/minecraft/discord', name: '💬 Discord', permission: 'file.*' },
+        { path: '/minecraft/motd', name: '🎨 MOTD & Icon', permission: 'file.*' },
+        { path: '/minecraft/doctor', name: '🩺 Crash Doctor', permission: 'file.*' },
+        { path: '/minecraft/moderation', name: '🛡️ Moderation', permission: 'file.*' },
+        { path: '/minecraft/datapacks', name: '🔮 Datapacks', permission: 'file.*' },
+        { path: '/minecraft/optimizer', name: '⚡ Optimizer', permission: 'file.*' },
+        { path: '/minecraft/map', name: '🗺️ 3D Map', permission: 'file.*' },
     ];
 
     const coreRoutes = routes.server.filter((route) => !!route.name && !route.path.startsWith('/minecraft'));
