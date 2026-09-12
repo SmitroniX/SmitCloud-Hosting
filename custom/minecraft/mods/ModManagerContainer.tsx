@@ -28,6 +28,8 @@ import {
     InformationCircleIcon,
     AdjustmentsIcon,
     LightningBoltIcon,
+    FireIcon,
+    GlobeAltIcon,
 } from '@heroicons/react/solid';
 import {
     InstalledMod,
@@ -40,9 +42,9 @@ import {
     deleteMod,
     createModsFolder,
     pullMod,
-    searchModrinthMods,
-    getModDetails,
-    getModVersions,
+    searchOnlineMods,
+    fetchModDetailsUnified,
+    fetchModVersionsUnified,
     getBestModDownload,
     uploadModFile,
     detectServerLoader,
@@ -221,6 +223,7 @@ export default () => {
     const [installedFilter, setInstalledFilter] = useState('');
 
     // Online search filters
+    const [modProvider, setModProvider] = useState<'curseforge' | 'modrinth' | 'all'>('curseforge');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedLoader, setSelectedLoader] = useState<string>('all');
     const [selectedVersion, setSelectedVersion] = useState<string>('all');
@@ -259,7 +262,7 @@ export default () => {
         }, 350);
 
         return () => clearTimeout(timer);
-    }, [searchQuery, selectedLoader, selectedVersion, serverOnly, sortBy, activeTab]);
+    }, [searchQuery, selectedLoader, selectedVersion, serverOnly, sortBy, modProvider, activeTab]);
 
     const loadInstalled = async () => {
         try {
@@ -278,12 +281,13 @@ export default () => {
         try {
             setLoading(true);
             clearFlashes('mods');
-            const results = await searchModrinthMods(
+            const results = await searchOnlineMods(
                 searchQuery,
                 selectedLoader,
                 selectedVersion,
                 serverOnly,
-                sortBy
+                sortBy,
+                modProvider
             );
             setSearchResults(results);
             setHasSearched(true);
@@ -373,10 +377,11 @@ export default () => {
     const handleQuickInstall = async (mod: OnlineMod) => {
         try {
             setActionLoading(mod.id);
-            const versions = await getModVersions(
+            const versions = await fetchModVersionsUnified(
                 mod.id,
                 selectedLoader !== 'all' ? selectedLoader : undefined,
-                selectedVersion !== 'all' ? selectedVersion : undefined
+                selectedVersion !== 'all' ? selectedVersion : undefined,
+                mod.source
             );
 
             if (!versions.length) {
@@ -393,7 +398,7 @@ export default () => {
         }
     };
 
-    const openPreview = async (projectId: string) => {
+    const openPreview = async (projectId: string, source?: 'modrinth' | 'curseforge') => {
         setPreviewModId(projectId);
         setPreviewDetails(null);
         setPreviewVersions([]);
@@ -402,11 +407,12 @@ export default () => {
 
         try {
             const [details, versions] = await Promise.all([
-                getModDetails(projectId),
-                getModVersions(
+                fetchModDetailsUnified(projectId, source),
+                fetchModVersionsUnified(
                     projectId,
                     selectedLoader !== 'all' ? selectedLoader : undefined,
-                    selectedVersion !== 'all' ? selectedVersion : undefined
+                    selectedVersion !== 'all' ? selectedVersion : undefined,
+                    source
                 ),
             ]);
             setPreviewDetails(details);
@@ -574,7 +580,7 @@ export default () => {
                         })}
                     >
                         <SearchIcon className={'h-4 w-4'} />
-                        Browse &amp; Search Modrinth
+                        Browse Mods (CurseForge &amp; Modrinth)
                     </button>
                     <button
                         type={'button'}
@@ -706,16 +712,61 @@ export default () => {
                     </div>
                 )}
 
-                {/* TAB 2: Browse & Search Modrinth */}
+                {/* TAB 2: Browse & Search CurseForge & Modrinth */}
                 {activeTab === 'search' && (
                     <div className={'flex flex-col gap-5'}>
                         {/* Search Bar & Advanced Filters */}
                         <div className={'flex flex-col gap-3 rounded-2xl border border-neutral-800 bg-[#0a0f1d]/90 p-4 shadow-lg'}>
+                            {/* Provider Selection Tabs */}
+                            <div className={'flex items-center gap-2 mb-0.5'}>
+                                <button
+                                    type={'button'}
+                                    onClick={() => setModProvider('curseforge')}
+                                    className={classNames('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition border', {
+                                        'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border-amber-500/50 shadow-md shadow-amber-500/10': modProvider === 'curseforge',
+                                        'bg-neutral-900/60 text-neutral-400 border-neutral-800 hover:text-white hover:border-neutral-700': modProvider !== 'curseforge',
+                                    })}
+                                >
+                                    <FireIcon className={'h-4 w-4 text-amber-400'} />
+                                    <span>CurseForge</span>
+                                    <span className={'ml-1 text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono'}>100k+</span>
+                                </button>
+                                <button
+                                    type={'button'}
+                                    onClick={() => setModProvider('modrinth')}
+                                    className={classNames('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition border', {
+                                        'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border-emerald-500/50 shadow-md shadow-emerald-500/10': modProvider === 'modrinth',
+                                        'bg-neutral-900/60 text-neutral-400 border-neutral-800 hover:text-white hover:border-neutral-700': modProvider !== 'modrinth',
+                                    })}
+                                >
+                                    <span className={'h-2 w-2 rounded-full bg-emerald-400'} />
+                                    <span>Modrinth</span>
+                                    <span className={'ml-1 text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-mono'}>50k+</span>
+                                </button>
+                                <button
+                                    type={'button'}
+                                    onClick={() => setModProvider('all')}
+                                    className={classNames('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition border', {
+                                        'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 border-indigo-500/50 shadow-md shadow-indigo-500/10': modProvider === 'all',
+                                        'bg-neutral-900/60 text-neutral-400 border-neutral-800 hover:text-white hover:border-neutral-700': modProvider !== 'all',
+                                    })}
+                                >
+                                    <GlobeAltIcon className={'h-4 w-4 text-indigo-400'} />
+                                    <span>All Sources</span>
+                                </button>
+                            </div>
+
                             <div className={'relative'}>
                                 <SearchIcon className={'absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500'} />
                                 <input
                                     type={'text'}
-                                    placeholder={'Search over 50,000+ Minecraft mods on Modrinth (e.g. Sodium, Create, JEI, Chunky)...'}
+                                    placeholder={
+                                        modProvider === 'curseforge'
+                                            ? 'Search over 100,000+ Minecraft mods on CurseForge (e.g. JEI, Create, JourneyMap, Appleskin)...'
+                                            : modProvider === 'modrinth'
+                                            ? 'Search over 50,000+ Minecraft mods on Modrinth (e.g. Sodium, FerriteCore, Lithium)...'
+                                            : 'Search mods across both CurseForge & Modrinth (e.g. Create, JEI, Chunky)...'
+                                    }
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className={'w-full rounded-xl bg-neutral-950 border border-neutral-700/80 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 focus:border-indigo-500 focus:outline-none transition'}
@@ -795,7 +846,7 @@ export default () => {
                             <div className={'py-20 text-center'}>
                                 <Spinner size={'large'} centered />
                                 <p className={'text-xs text-indigo-400 font-mono mt-3 animate-pulse'}>
-                                    Querying Modrinth Mod Index...
+                                    Searching {modProvider === 'curseforge' ? 'CurseForge' : modProvider === 'modrinth' ? 'Modrinth' : 'CurseForge & Modrinth'} Mod Index...
                                 </p>
                             </div>
                         ) : searchResults.length === 0 ? (
@@ -832,11 +883,22 @@ export default () => {
                                                             <h4 className={'text-sm font-black text-white truncate group-hover:text-indigo-300 transition'}>
                                                                 {mod.title}
                                                             </h4>
-                                                            {installed && (
-                                                                <span className={'px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase shrink-0'}>
-                                                                    Installed
-                                                                </span>
-                                                            )}
+                                                            <div className={'flex items-center gap-1 shrink-0'}>
+                                                                {mod.source === 'curseforge' ? (
+                                                                    <span className={'px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[9px] font-black uppercase flex items-center gap-0.5'}>
+                                                                        <FireIcon className={'h-2.5 w-2.5 text-amber-400'} /> CF
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className={'px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase flex items-center gap-1'}>
+                                                                        <span className={'h-1.5 w-1.5 rounded-full bg-emerald-400'} /> MR
+                                                                    </span>
+                                                                )}
+                                                                {installed && (
+                                                                    <span className={'px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase'}>
+                                                                        Installed
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         <p className={'text-[11px] text-neutral-400 font-mono mt-0.5'}>
                                                             by {mod.author || 'Author'}
@@ -876,7 +938,7 @@ export default () => {
                                             <div className={'flex items-center gap-2 mt-4 pt-3 border-t border-neutral-800/80'}>
                                                 <button
                                                     type={'button'}
-                                                    onClick={() => openPreview(mod.id)}
+                                                    onClick={() => openPreview(mod.id, mod.source)}
                                                     className={'flex-1 rounded-xl bg-neutral-800/80 hover:bg-neutral-700 py-2 text-xs font-semibold text-neutral-200 border border-neutral-700/60 transition text-center'}
                                                 >
                                                     Details &amp; Versions
@@ -1000,7 +1062,7 @@ export default () => {
                             <div className={'py-16 text-center'}>
                                 <Spinner size={'large'} centered />
                                 <p className={'text-xs text-indigo-400 font-mono mt-3 animate-pulse'}>
-                                    Loading Modrinth Project &amp; Version Tree...
+                                    Loading Project &amp; Version Tree...
                                 </p>
                             </div>
                         ) : (
@@ -1072,12 +1134,24 @@ export default () => {
                                                     </a>
                                                 )}
                                                 <a
-                                                    href={`https://modrinth.com/mod/${previewDetails.slug}`}
+                                                    href={
+                                                        previewDetails.source === 'curseforge' || (!previewDetails.source && /^\d+$/.test(previewDetails.id))
+                                                            ? `https://www.curseforge.com/minecraft/mc-mods/${previewDetails.slug}`
+                                                            : `https://modrinth.com/mod/${previewDetails.slug}`
+                                                    }
                                                     target={'_blank'}
                                                     rel={'noreferrer'}
-                                                    className={'text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold'}
+                                                    className={
+                                                        previewDetails.source === 'curseforge' || (!previewDetails.source && /^\d+$/.test(previewDetails.id))
+                                                            ? 'text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold'
+                                                            : 'text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold'
+                                                    }
                                                 >
-                                                    <span>Modrinth Page</span>
+                                                    <span>
+                                                        {previewDetails.source === 'curseforge' || (!previewDetails.source && /^\d+$/.test(previewDetails.id))
+                                                            ? 'CurseForge Page'
+                                                            : 'Modrinth Page'}
+                                                    </span>
                                                     <ExternalLinkIcon className={'h-3.5 w-3.5'} />
                                                 </a>
                                             </div>

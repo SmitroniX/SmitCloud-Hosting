@@ -19,6 +19,7 @@ export interface OnlineModpack {
     clientSide?: 'required' | 'optional' | 'unsupported';
     sourceUrl?: string;
     color?: number;
+    source?: 'modrinth' | 'curseforge';
 }
 
 export interface ModpackVersionFile {
@@ -65,6 +66,7 @@ export interface ModpackDetails {
     donationUrls?: { id: string; platform: string; url: string }[];
     license?: string;
     color?: number;
+    source?: 'modrinth' | 'curseforge';
 }
 
 export type ModpackLoader = 'all' | 'fabric' | 'forge' | 'neoforge' | 'quilt';
@@ -340,4 +342,58 @@ export const formatDownloads = (n: number): string => {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
     if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
     return String(n);
+};
+
+/**
+ * Unified modpack search supporting CurseForge and Modrinth
+ */
+export const searchOnlineModpacks = async (
+    query = '',
+    loader?: string,
+    gameVersion?: string,
+    sortBy: 'downloads' | 'follows' | 'updated' | 'newest' = 'downloads',
+    provider: 'all' | 'curseforge' | 'modrinth' = 'curseforge'
+): Promise<OnlineModpack[]> => {
+    const { searchCurseForgeModpacks } = await import('@/api/server/minecraft/curseforge');
+
+    if (provider === 'curseforge') {
+        const cfPacks = await searchCurseForgeModpacks(query, loader, gameVersion, sortBy);
+        return cfPacks.map((p) => ({ ...p, source: 'curseforge' as const }));
+    }
+    if (provider === 'modrinth') {
+        const mrPacks = await searchModrinthModpacks(query, loader, gameVersion, sortBy);
+        return mrPacks.map((p) => ({ ...p, source: 'modrinth' as const }));
+    }
+
+    const [cfPacks, mrPacks] = await Promise.all([
+        searchCurseForgeModpacks(query, loader, gameVersion, sortBy, 16),
+        searchModrinthModpacks(query, loader, gameVersion, sortBy),
+    ]);
+    const markedCf = cfPacks.map((p) => ({ ...p, source: 'curseforge' as const }));
+    const markedMr = mrPacks.map((p) => ({ ...p, source: 'modrinth' as const }));
+    return [...markedCf, ...markedMr];
+};
+
+export const fetchModpackDetailsUnified = async (
+    idOrSlug: string,
+    source: 'curseforge' | 'modrinth' = 'modrinth'
+): Promise<ModpackDetails | null> => {
+    if (source === 'curseforge' || idOrSlug.startsWith('cf-')) {
+        const { getCurseForgeModpackDetails } = await import('@/api/server/minecraft/curseforge');
+        return getCurseForgeModpackDetails(idOrSlug);
+    }
+    return getModpackDetails(idOrSlug);
+};
+
+export const fetchModpackVersionsUnified = async (
+    idOrSlug: string,
+    loader?: string,
+    gameVersion?: string,
+    source: 'curseforge' | 'modrinth' = 'modrinth'
+): Promise<ModpackVersion[]> => {
+    if (source === 'curseforge' || idOrSlug.startsWith('cf-')) {
+        const { getCurseForgeModpackFiles } = await import('@/api/server/minecraft/curseforge');
+        return getCurseForgeModpackFiles(idOrSlug, gameVersion, loader);
+    }
+    return getModpackVersions(idOrSlug, loader, gameVersion);
 };

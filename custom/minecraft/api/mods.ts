@@ -29,6 +29,7 @@ export interface OnlineMod {
     serverSide?: 'required' | 'optional' | 'unsupported';
     clientSide?: 'required' | 'optional' | 'unsupported';
     sourceUrl?: string;
+    source?: 'modrinth' | 'curseforge';
 }
 
 export interface ModVersionFile {
@@ -73,6 +74,7 @@ export interface ModDetails {
     discordUrl?: string;
     donationUrls?: { id: string; platform: string; url: string }[];
     license?: string;
+    source?: 'modrinth' | 'curseforge';
 }
 
 export type ModLoader = 'all' | 'fabric' | 'forge' | 'neoforge' | 'quilt';
@@ -345,4 +347,59 @@ export const detectServerLoader = async (uuid: string): Promise<ModLoader> => {
     } catch {
         return 'all';
     }
+};
+
+/**
+ * Unified mod search supporting CurseForge and Modrinth
+ */
+export const searchOnlineMods = async (
+    query = '',
+    loader?: string,
+    gameVersion?: string,
+    serverOnly = false,
+    sortBy: 'downloads' | 'follows' | 'updated' | 'newest' = 'downloads',
+    provider: 'all' | 'curseforge' | 'modrinth' = 'curseforge'
+): Promise<OnlineMod[]> => {
+    const { searchCurseForgeMods } = await import('@/api/server/minecraft/curseforge');
+
+    if (provider === 'curseforge') {
+        const cfMods = await searchCurseForgeMods(query, loader, gameVersion, sortBy);
+        return cfMods.map((m) => ({ ...m, source: 'curseforge' as const }));
+    }
+    if (provider === 'modrinth') {
+        const mrMods = await searchModrinthMods(query, loader, gameVersion, serverOnly, sortBy);
+        return mrMods.map((m) => ({ ...m, source: 'modrinth' as const }));
+    }
+
+    const [cfMods, mrMods] = await Promise.all([
+        searchCurseForgeMods(query, loader, gameVersion, sortBy, 16),
+        searchModrinthMods(query, loader, gameVersion, serverOnly, sortBy),
+    ]);
+    const markedCf = cfMods.map((m) => ({ ...m, source: 'curseforge' as const }));
+    const markedMr = mrMods.map((m) => ({ ...m, source: 'modrinth' as const }));
+    return [...markedCf, ...markedMr];
+};
+
+export const fetchModDetailsUnified = async (
+    idOrSlug: string,
+    source: 'curseforge' | 'modrinth' = 'modrinth'
+): Promise<ModDetails | null> => {
+    if (source === 'curseforge' || idOrSlug.startsWith('cf-')) {
+        const { getCurseForgeModDetails } = await import('@/api/server/minecraft/curseforge');
+        return getCurseForgeModDetails(idOrSlug);
+    }
+    return getModDetails(idOrSlug);
+};
+
+export const fetchModVersionsUnified = async (
+    idOrSlug: string,
+    loader?: string,
+    gameVersion?: string,
+    source: 'curseforge' | 'modrinth' = 'modrinth'
+): Promise<ModVersion[]> => {
+    if (source === 'curseforge' || idOrSlug.startsWith('cf-')) {
+        const { getCurseForgeModFiles } = await import('@/api/server/minecraft/curseforge');
+        return getCurseForgeModFiles(idOrSlug, gameVersion, loader);
+    }
+    return getModVersions(idOrSlug, loader, gameVersion);
 };

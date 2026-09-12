@@ -30,9 +30,9 @@ import {
     ModpackDetails,
     ModpackVersion,
     ModpackLoader,
-    searchModrinthModpacks,
-    getModpackDetails,
-    getModpackVersions,
+    searchOnlineModpacks,
+    fetchModpackDetailsUnified,
+    fetchModpackVersionsUnified,
     getBestModpackDownload,
     pullModpack,
     fetchTrendingModpacks,
@@ -182,6 +182,7 @@ export default () => {
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
     // Search state
+    const [modpackProvider, setModpackProvider] = useState<'curseforge' | 'modrinth' | 'all'>('curseforge');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedLoader, setSelectedLoader] = useState<string>('all');
     const [selectedVersion, setSelectedVersion] = useState<string>('all');
@@ -219,13 +220,13 @@ export default () => {
             executeSearch();
         }, 350);
         return () => clearTimeout(timer);
-    }, [searchQuery, selectedLoader, selectedVersion, sortBy, activeTab]);
+    }, [searchQuery, selectedLoader, selectedVersion, sortBy, modpackProvider, activeTab]);
 
     const executeSearch = async () => {
         try {
             setLoading(true);
             clearFlashes('modpacks');
-            const results = await searchModrinthModpacks(searchQuery, selectedLoader, selectedVersion, sortBy);
+            const results = await searchOnlineModpacks(searchQuery, selectedLoader, selectedVersion, sortBy, modpackProvider);
             setSearchResults(results);
             setHasSearched(true);
         } catch (error) {
@@ -257,7 +258,7 @@ export default () => {
         await Promise.all(
             FEATURED_MODPACKS.map(async (fp) => {
                 try {
-                    const detail = await getModpackDetails(fp.slug);
+                    const detail = await fetchModpackDetailsUnified(fp.slug);
                     if (detail) {
                         results[fp.slug] = {
                             id: detail.id,
@@ -289,7 +290,7 @@ export default () => {
         setFeaturedLoading(false);
     };
 
-    const openPreview = async (projectId: string) => {
+    const openPreview = async (projectId: string, source?: 'modrinth' | 'curseforge') => {
         setPreviewId(projectId);
         setPreviewDetails(null);
         setPreviewVersions([]);
@@ -298,11 +299,12 @@ export default () => {
 
         try {
             const [details, versions] = await Promise.all([
-                getModpackDetails(projectId),
-                getModpackVersions(
+                fetchModpackDetailsUnified(projectId, source),
+                fetchModpackVersionsUnified(
                     projectId,
                     selectedLoader !== 'all' ? selectedLoader : undefined,
-                    selectedVersion !== 'all' ? selectedVersion : undefined
+                    selectedVersion !== 'all' ? selectedVersion : undefined,
+                    source
                 ),
             ]);
             setPreviewDetails(details);
@@ -350,10 +352,11 @@ export default () => {
     const handleQuickInstall = async (modpack: OnlineModpack) => {
         try {
             setActionLoading(modpack.id);
-            const versions = await getModpackVersions(
+            const versions = await fetchModpackVersionsUnified(
                 modpack.id,
                 selectedLoader !== 'all' ? selectedLoader : undefined,
-                selectedVersion !== 'all' ? selectedVersion : undefined
+                selectedVersion !== 'all' ? selectedVersion : undefined,
+                modpack.source
             );
 
             if (!versions.length) {
@@ -430,13 +433,24 @@ export default () => {
                 )}
 
                 <div className={'min-w-0 flex-1'}>
-                    <h4
-                        className={'text-sm font-bold text-white truncate cursor-pointer hover:text-purple-300 transition'}
-                        onClick={() => openPreview(modpack.slug || modpack.id)}
-                        title={modpack.title}
-                    >
-                        {modpack.title}
-                    </h4>
+                    <div className={'flex items-center justify-between gap-1'}>
+                        <h4
+                            className={'text-sm font-bold text-white truncate cursor-pointer hover:text-purple-300 transition'}
+                            onClick={() => openPreview(modpack.slug || modpack.id, modpack.source)}
+                            title={modpack.title}
+                        >
+                            {modpack.title}
+                        </h4>
+                        {modpack.source === 'curseforge' ? (
+                            <span className={'px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[9px] font-black uppercase flex items-center gap-0.5 shrink-0'}>
+                                <FireIcon className={'h-2.5 w-2.5 text-amber-400'} /> CF
+                            </span>
+                        ) : (
+                            <span className={'px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[9px] font-black uppercase flex items-center gap-1 shrink-0'}>
+                                <span className={'h-1.5 w-1.5 rounded-full bg-purple-400'} /> MR
+                            </span>
+                        )}
+                    </div>
                     {modpack.author && (
                         <p className={'text-[11px] text-neutral-500 truncate'}>
                             by {modpack.author}
@@ -489,7 +503,7 @@ export default () => {
                 <div className={'flex items-center gap-2'}>
                     <button
                         type={'button'}
-                        onClick={() => openPreview(modpack.slug || modpack.id)}
+                        onClick={() => openPreview(modpack.slug || modpack.id, modpack.source)}
                         className={'px-2.5 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-[10px] font-semibold text-neutral-300 border border-neutral-700/60 transition'}
                     >
                         Preview
@@ -531,13 +545,12 @@ export default () => {
                                         Server Modpacks
                                     </h1>
                                     <span className={'inline-flex items-center gap-1.5 rounded-full bg-purple-500/15 px-3 py-0.5 text-xs font-bold text-purple-400 border border-purple-500/30'}>
-                                        <SparklesIcon className={'h-3.5 w-3.5'} />
-                                        MODRINTH
+                                        <SparklesIcon className={'h-3.5 w-3.5 text-amber-400'} />
+                                        CURSEFORGE &amp; MODRINTH
                                     </span>
                                 </div>
                                 <p className={'mt-1 text-xs sm:text-sm text-neutral-400'}>
-                                    Browse, preview, and install complete server modpacks like ATM10, RLCraft, Better MC, and more.
-                                    Download .mrpack files directly to your server with one click.
+                                    Browse, preview, and install complete server modpacks like ATM10, RLCraft, Better MC, and more directly from CurseForge &amp; Modrinth.
                                 </p>
                             </div>
                         </div>
@@ -564,12 +577,12 @@ export default () => {
                     {/* Info Strip */}
                     <div className={'grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-5 border-t border-neutral-800/80 text-xs'}>
                         <div className={'rounded-xl bg-neutral-900/60 border border-neutral-800/70 p-3'}>
-                            <span className={'text-neutral-500 block text-[10px] uppercase font-bold'}>Source</span>
-                            <span className={'text-sm font-black text-purple-400 mt-0.5 block'}>Modrinth</span>
+                            <span className={'text-neutral-500 block text-[10px] uppercase font-bold'}>Repositories</span>
+                            <span className={'text-sm font-black text-amber-400 mt-0.5 block'}>CurseForge &amp; Modrinth</span>
                         </div>
                         <div className={'rounded-xl bg-neutral-900/60 border border-neutral-800/70 p-3'}>
-                            <span className={'text-neutral-500 block text-[10px] uppercase font-bold'}>File Format</span>
-                            <span className={'text-sm font-black text-white mt-0.5 block'}>.mrpack</span>
+                            <span className={'text-neutral-500 block text-[10px] uppercase font-bold'}>File Formats</span>
+                            <span className={'text-sm font-black text-white mt-0.5 block'}>.zip / .mrpack</span>
                         </div>
                         <div className={'rounded-xl bg-neutral-900/60 border border-neutral-800/70 p-3'}>
                             <span className={'text-neutral-500 block text-[10px] uppercase font-bold'}>Loader Filter</span>
@@ -699,11 +712,56 @@ export default () => {
                     <div className={'flex flex-col gap-5'}>
                         {/* Search Bar & Filters */}
                         <div className={'flex flex-col gap-3 rounded-2xl border border-neutral-800 bg-[#0a0f1d]/90 p-4 shadow-lg'}>
+                            {/* Provider Selection Tabs */}
+                            <div className={'flex items-center gap-2 mb-0.5'}>
+                                <button
+                                    type={'button'}
+                                    onClick={() => setModpackProvider('curseforge')}
+                                    className={classNames('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition border', {
+                                        'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border-amber-500/50 shadow-md shadow-amber-500/10': modpackProvider === 'curseforge',
+                                        'bg-neutral-900/60 text-neutral-400 border-neutral-800 hover:text-white hover:border-neutral-700': modpackProvider !== 'curseforge',
+                                    })}
+                                >
+                                    <FireIcon className={'h-4 w-4 text-amber-400'} />
+                                    <span>CurseForge</span>
+                                    <span className={'ml-1 text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-mono'}>15k+</span>
+                                </button>
+                                <button
+                                    type={'button'}
+                                    onClick={() => setModpackProvider('modrinth')}
+                                    className={classNames('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition border', {
+                                        'bg-gradient-to-r from-purple-500/20 to-indigo-500/20 text-purple-300 border-purple-500/50 shadow-md shadow-purple-500/10': modpackProvider === 'modrinth',
+                                        'bg-neutral-900/60 text-neutral-400 border-neutral-800 hover:text-white hover:border-neutral-700': modpackProvider !== 'modrinth',
+                                    })}
+                                >
+                                    <span className={'h-2 w-2 rounded-full bg-purple-400'} />
+                                    <span>Modrinth</span>
+                                    <span className={'ml-1 text-[9px] px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300 font-mono'}>5k+</span>
+                                </button>
+                                <button
+                                    type={'button'}
+                                    onClick={() => setModpackProvider('all')}
+                                    className={classNames('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition border', {
+                                        'bg-gradient-to-r from-indigo-500/20 to-pink-500/20 text-indigo-300 border-indigo-500/50 shadow-md shadow-indigo-500/10': modpackProvider === 'all',
+                                        'bg-neutral-900/60 text-neutral-400 border-neutral-800 hover:text-white hover:border-neutral-700': modpackProvider !== 'all',
+                                    })}
+                                >
+                                    <GlobeAltIcon className={'h-4 w-4 text-indigo-400'} />
+                                    <span>All Sources</span>
+                                </button>
+                            </div>
+
                             <div className={'relative'}>
                                 <SearchIcon className={'absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500'} />
                                 <input
                                     type={'text'}
-                                    placeholder={'Search modpacks on Modrinth (e.g. ATM10, Better MC, RLCraft, Create)...'}
+                                    placeholder={
+                                        modpackProvider === 'curseforge'
+                                            ? 'Search over 15,000+ modpacks on CurseForge (e.g. ATM10, RLCraft, Better MC, Pixelmon)...'
+                                            : modpackProvider === 'modrinth'
+                                            ? 'Search modpacks on Modrinth (e.g. Fabulously Optimized, Cobblemon, Adrenaline)...'
+                                            : 'Search modpacks across both CurseForge & Modrinth...'
+                                    }
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className={'w-full rounded-xl bg-neutral-950 border border-neutral-700/80 pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 focus:border-purple-500 focus:outline-none transition'}
@@ -764,7 +822,9 @@ export default () => {
                         {loading && !searchResults.length ? (
                             <div className={'py-16 text-center'}>
                                 <Spinner size={'large'} centered />
-                                <p className={'text-xs text-neutral-400 font-mono mt-3'}>Searching Modrinth modpacks...</p>
+                                <p className={'text-xs text-neutral-400 font-mono mt-3'}>
+                                    Searching {modpackProvider === 'curseforge' ? 'CurseForge' : modpackProvider === 'modrinth' ? 'Modrinth' : 'CurseForge & Modrinth'} modpacks...
+                                </p>
                             </div>
                         ) : searchResults.length === 0 && hasSearched ? (
                             <div className={'rounded-2xl border border-dashed border-neutral-800 bg-[#0a0f1d]/50 p-12 text-center'}>
@@ -935,13 +995,21 @@ export default () => {
                                             <div className={'flex flex-wrap gap-2 mb-4'}>
                                                 {previewDetails.sourceUrl && (
                                                     <a
-                                                        href={`https://modrinth.com/modpack/${previewDetails.slug}`}
+                                                        href={
+                                                            previewDetails.source === 'curseforge' || (!previewDetails.source && /^\d+$/.test(previewDetails.id))
+                                                                ? `https://www.curseforge.com/minecraft/modpacks/${previewDetails.slug}`
+                                                                : `https://modrinth.com/modpack/${previewDetails.slug}`
+                                                        }
                                                         target={'_blank'}
                                                         rel={'noopener noreferrer'}
-                                                        className={'flex items-center gap-1 px-3 py-1 rounded-lg bg-purple-500/10 border border-purple-500/30 text-[10px] font-semibold text-purple-400 hover:bg-purple-500/20 transition'}
+                                                        className={
+                                                            previewDetails.source === 'curseforge' || (!previewDetails.source && /^\d+$/.test(previewDetails.id))
+                                                                ? 'flex items-center gap-1 px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[10px] font-semibold text-amber-400 hover:bg-amber-500/20 transition'
+                                                                : 'flex items-center gap-1 px-3 py-1 rounded-lg bg-purple-500/10 border border-purple-500/30 text-[10px] font-semibold text-purple-400 hover:bg-purple-500/20 transition'
+                                                        }
                                                     >
                                                         <GlobeAltIcon className={'h-3 w-3'} />
-                                                        Modrinth Page
+                                                        {previewDetails.source === 'curseforge' || (!previewDetails.source && /^\d+$/.test(previewDetails.id)) ? 'CurseForge Page' : 'Modrinth Page'}
                                                     </a>
                                                 )}
                                                 {previewDetails.discordUrl && (
