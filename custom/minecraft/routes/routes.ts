@@ -13,24 +13,25 @@ import AccountApiContainer from '@/components/dashboard/AccountApiContainer';
 import AccountSSHContainer from '@/components/dashboard/ssh/AccountSSHContainer';
 import ActivityLogContainer from '@/components/dashboard/activity/ActivityLogContainer';
 import ServerActivityLogContainer from '@/components/server/ServerActivityLogContainer';
-import PluginManagerContainer from '@/components/server/minecraft/plugins/PluginManagerContainer';
-import PlayerManagerContainer from '@/components/server/minecraft/players/PlayerManagerContainer';
-import PropertiesEditorContainer from '@/components/server/minecraft/properties/PropertiesEditorContainer';
-import GeyserManagerContainer from '@/components/server/minecraft/geyser/GeyserManagerContainer';
-import VersionManagerContainer from '@/components/server/minecraft/versions/VersionManagerContainer';
-import WorldManagerContainer from '@/components/server/minecraft/worlds/WorldManagerContainer';
-import HealthMonitorContainer from '@/components/server/minecraft/health/HealthMonitorContainer';
-import DiscordIntegrationContainer from '@/components/server/minecraft/discord/DiscordIntegrationContainer';
-import DDoSProtectionContainer from '@/components/server/minecraft/ddos/DDoSProtectionContainer';
-import DomainManagerContainer from '@/components/server/minecraft/domains/DomainManagerContainer';
-import ModManagerContainer from '@/components/server/minecraft/mods/ModManagerContainer';
-import ModpackManagerContainer from '@/components/server/minecraft/modpacks/ModpackManagerContainer';
-import MOTDStudioContainer from '@/components/server/minecraft/motd/MOTDStudioContainer';
-import CrashDoctorContainer from '@/components/server/minecraft/doctor/CrashDoctorContainer';
-import ModerationContainer from '@/components/server/minecraft/moderation/ModerationContainer';
-import DatapackManagerContainer from '@/components/server/minecraft/datapacks/DatapackManagerContainer';
-import OptimizerContainer from '@/components/server/minecraft/optimizer/OptimizerContainer';
-import LiveMapContainer from '@/components/server/minecraft/map/LiveMapContainer';
+const MinecraftHubOverviewContainer = lazy(() => import(/* webpackChunkName: "mc-hub" */ '@/components/server/minecraft/overview/MinecraftHubOverviewContainer'));
+const VersionManagerContainer = lazy(() => import(/* webpackChunkName: "mc-version" */ '@/components/server/minecraft/versions/VersionManagerContainer'));
+const PluginManagerContainer = lazy(() => import(/* webpackChunkName: "mc-plugins" */ '@/components/server/minecraft/plugins/PluginManagerContainer'));
+const ModManagerContainer = lazy(() => import(/* webpackChunkName: "mc-mods" */ '@/components/server/minecraft/mods/ModManagerContainer'));
+const ModpackManagerContainer = lazy(() => import(/* webpackChunkName: "mc-modpacks" */ '@/components/server/minecraft/modpacks/ModpackManagerContainer'));
+const WorldManagerContainer = lazy(() => import(/* webpackChunkName: "mc-worlds" */ '@/components/server/minecraft/worlds/WorldManagerContainer'));
+const PlayerManagerContainer = lazy(() => import(/* webpackChunkName: "mc-players" */ '@/components/server/minecraft/players/PlayerManagerContainer'));
+const GeyserManagerContainer = lazy(() => import(/* webpackChunkName: "mc-geyser" */ '@/components/server/minecraft/geyser/GeyserManagerContainer'));
+const DomainManagerContainer = lazy(() => import(/* webpackChunkName: "mc-domains" */ '@/components/server/minecraft/domains/DomainManagerContainer'));
+const PropertiesEditorContainer = lazy(() => import(/* webpackChunkName: "mc-properties" */ '@/components/server/minecraft/properties/PropertiesEditorContainer'));
+const HealthMonitorContainer = lazy(() => import(/* webpackChunkName: "mc-health" */ '@/components/server/minecraft/health/HealthMonitorContainer'));
+const DDoSProtectionContainer = lazy(() => import(/* webpackChunkName: "mc-ddos" */ '@/components/server/minecraft/ddos/DDoSProtectionContainer'));
+const DiscordIntegrationContainer = lazy(() => import(/* webpackChunkName: "mc-discord" */ '@/components/server/minecraft/discord/DiscordIntegrationContainer'));
+const MOTDStudioContainer = lazy(() => import(/* webpackChunkName: "mc-motd" */ '@/components/server/minecraft/motd/MOTDStudioContainer'));
+const CrashDoctorContainer = lazy(() => import(/* webpackChunkName: "mc-doctor" */ '@/components/server/minecraft/doctor/CrashDoctorContainer'));
+const ModerationContainer = lazy(() => import(/* webpackChunkName: "mc-moderation" */ '@/components/server/minecraft/moderation/ModerationContainer'));
+const DatapackManagerContainer = lazy(() => import(/* webpackChunkName: "mc-datapacks" */ '@/components/server/minecraft/datapacks/DatapackManagerContainer'));
+const OptimizerContainer = lazy(() => import(/* webpackChunkName: "mc-optimizer" */ '@/components/server/minecraft/optimizer/OptimizerContainer'));
+const LiveMapContainer = lazy(() => import(/* webpackChunkName: "mc-map" */ '@/components/server/minecraft/map/LiveMapContainer'));
 
 // Each of the router files is already code split out appropriately — so
 // all of the items above will only be loaded in when that router is loaded.
@@ -139,6 +140,13 @@ export default {
             permission: 'startup.*',
             name: 'Startup',
             component: StartupContainer,
+        },
+        {
+            path: '/minecraft',
+            permission: null,
+            name: 'Minecraft Hub',
+            component: MinecraftHubOverviewContainer,
+            exact: true,
         },
         {
             path: '/minecraft/version',

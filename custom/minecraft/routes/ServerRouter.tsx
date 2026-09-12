@@ -63,25 +63,32 @@ export default () => {
     }, [match.params.id]);
 
     const isMinecraftActive = location.pathname.includes('/minecraft');
+    const [subnavCategory, setSubnavCategory] = useState<'all' | 'software' | 'config' | 'community' | 'diagnostics'>('all');
+
     const minecraftSubRoutes = [
-        { path: '/minecraft/version', name: '⚡ Software & Version', permission: 'file.*' },
-        { path: '/minecraft/plugins', name: '🔌 Plugins', permission: 'file.*' },
-        { path: '/minecraft/mods', name: '📦 Mods', permission: 'file.*' },
-        { path: '/minecraft/modpacks', name: '🎁 Modpacks', permission: 'file.*' },
-        { path: '/minecraft/worlds', name: '🗺️ Worlds & Maps', permission: 'file.*' },
-        { path: '/minecraft/players', name: '👥 Players', permission: 'file.*' },
-        { path: '/minecraft/geyser', name: '🎮 Bedrock Crossplay', permission: 'file.*' },
-        { path: '/minecraft/domain', name: '🌐 Custom Domains', permission: 'allocation.*' },
-        { path: '/minecraft/properties', name: '⚙️ Server Properties', permission: 'file.*' },
-        { path: '/minecraft/health', name: '📊 Health & TPS', permission: null },
-        { path: '/minecraft/ddos', name: '🛡️ DDoS Shield', permission: 'file.*' },
-        { path: '/minecraft/discord', name: '💬 Discord', permission: 'file.*' },
-        { path: '/minecraft/motd', name: '🎨 MOTD & Icon', permission: 'file.*' },
-        { path: '/minecraft/doctor', name: '🩺 Crash Doctor', permission: 'file.*' },
-        { path: '/minecraft/moderation', name: '🛡️ Moderation', permission: 'file.*' },
-        { path: '/minecraft/datapacks', name: '🔮 Datapacks', permission: 'file.*' },
-        { path: '/minecraft/optimizer', name: '⚡ Optimizer', permission: 'file.*' },
-        { path: '/minecraft/map', name: '🗺️ 3D Map', permission: 'file.*' },
+        { path: '/minecraft', name: '🏠 Overview', category: 'all', permission: null, exact: true },
+        // Software & Content
+        { path: '/minecraft/version', name: '⚡ Software & Version', category: 'software', permission: 'file.*' },
+        { path: '/minecraft/plugins', name: '🔌 Plugins', category: 'software', permission: 'file.*' },
+        { path: '/minecraft/mods', name: '📦 Mods', category: 'software', permission: 'file.*' },
+        { path: '/minecraft/modpacks', name: '🎁 Modpacks', category: 'software', permission: 'file.*' },
+        { path: '/minecraft/datapacks', name: '🔮 Datapacks', category: 'software', permission: 'file.*' },
+        { path: '/minecraft/worlds', name: '🗺️ Worlds & Maps', category: 'software', permission: 'file.*' },
+        // Config & Networking
+        { path: '/minecraft/properties', name: '⚙️ Server Properties', category: 'config', permission: 'file.*' },
+        { path: '/minecraft/motd', name: '🎨 MOTD & Icon', category: 'config', permission: 'file.*' },
+        { path: '/minecraft/domain', name: '🌐 Custom Domains', category: 'config', permission: 'allocation.*' },
+        { path: '/minecraft/geyser', name: '🎮 Bedrock Crossplay', category: 'config', permission: 'file.*' },
+        { path: '/minecraft/map', name: '🗺️ 3D Map', category: 'config', permission: 'file.*' },
+        // Players & Community
+        { path: '/minecraft/players', name: '👥 Players', category: 'community', permission: 'file.*' },
+        { path: '/minecraft/moderation', name: '🛡️ Moderation', category: 'community', permission: 'file.*' },
+        { path: '/minecraft/discord', name: '💬 Discord', category: 'community', permission: 'file.*' },
+        // Diagnostics & Performance
+        { path: '/minecraft/health', name: '📊 Health & TPS', category: 'diagnostics', permission: null },
+        { path: '/minecraft/doctor', name: '🩺 Crash Doctor', category: 'diagnostics', permission: 'file.*' },
+        { path: '/minecraft/optimizer', name: '⚡ Optimizer', category: 'diagnostics', permission: 'file.*' },
+        { path: '/minecraft/ddos', name: '🛡️ DDoS Shield', category: 'diagnostics', permission: 'file.*' },
     ];
 
     const coreRoutes = routes.server.filter((route) => !!route.name && !route.path.startsWith('/minecraft'));
@@ -118,7 +125,7 @@ export default () => {
                                 )}
 
                                 <NavLink
-                                    to={to('/minecraft/version', true)}
+                                    to={to('/minecraft', true)}
                                     isActive={() => isMinecraftActive}
                                     className={isMinecraftActive ? 'active' : ''}
                                 >
@@ -151,35 +158,61 @@ export default () => {
 
                     {isMinecraftActive && (
                         <div className={'w-full bg-[#080d1a] border-b border-cyan-500/20 shadow-md select-none py-2 px-3 sm:px-6 overflow-x-auto scrollbar-none'}>
-                            <div className={'flex items-center gap-1.5 sm:gap-2 mx-auto max-w-[1200px] min-w-max'}>
-                                <div className={'flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-bold text-xs mr-1 shadow-sm'}>
-                                    <span className={'h-2 w-2 rounded-full bg-cyan-400 animate-pulse'} />
-                                    <span>Minecraft Suite</span>
-                                </div>
-                                {minecraftSubRoutes.map((subRoute) => {
-                                    const isSubActive = location.pathname.endsWith(subRoute.path) || location.pathname.includes(subRoute.path);
-                                    const linkElement = (
-                                        <NavLink
-                                            key={subRoute.path}
-                                            to={to(subRoute.path, true)}
-                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 whitespace-nowrap ${
-                                                isSubActive
-                                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-neutral-950 font-bold shadow-[0_0_12px_rgba(6,182,212,0.4)]'
-                                                    : 'text-neutral-300 hover:text-white hover:bg-neutral-800/80 border border-transparent'
+                            <div className={'flex items-center gap-1.5 sm:gap-2 mx-auto max-w-[1280px] min-w-max'}>
+                                {/* Category Filter Buttons */}
+                                <div className={'flex items-center gap-1 p-0.5 rounded-lg bg-neutral-900 border border-neutral-800 text-[11px] font-bold mr-2'}>
+                                    {[
+                                        { id: 'all', label: 'All' },
+                                        { id: 'software', label: '⚡ Software' },
+                                        { id: 'config', label: '⚙️ Config' },
+                                        { id: 'community', label: '👥 Community' },
+                                        { id: 'diagnostics', label: '🛡️ Health' },
+                                    ].map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            type={'button'}
+                                            onClick={() => setSubnavCategory(cat.id as any)}
+                                            className={`px-2 py-0.5 rounded transition ${
+                                                subnavCategory === cat.id
+                                                    ? 'bg-cyan-500 text-black font-extrabold shadow'
+                                                    : 'text-neutral-400 hover:text-white'
                                             }`}
                                         >
-                                            {subRoute.name}
-                                        </NavLink>
-                                    );
+                                            {cat.label}
+                                        </button>
+                                    ))}
+                                </div>
 
-                                    return subRoute.permission ? (
-                                        <Can key={subRoute.path} action={subRoute.permission} matchAny>
-                                            {linkElement}
-                                        </Can>
-                                    ) : (
-                                        linkElement
-                                    );
-                                })}
+                                {minecraftSubRoutes
+                                    .filter((subRoute) => subnavCategory === 'all' || subRoute.category === 'all' || subRoute.category === subnavCategory)
+                                    .map((subRoute) => {
+                                        const isSubActive = subRoute.exact
+                                            ? location.pathname === `/server/${id}${subRoute.path}` || location.pathname === `/server/${id}${subRoute.path}/`
+                                            : location.pathname.includes(subRoute.path);
+
+                                        const linkElement = (
+                                            <NavLink
+                                                key={subRoute.path}
+                                                to={to(subRoute.path, true)}
+                                                exact={subRoute.exact}
+                                                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-150 whitespace-nowrap ${
+                                                    isSubActive
+                                                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-neutral-950 font-bold shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+                                                        : 'text-neutral-300 hover:text-white hover:bg-neutral-800/80 border border-transparent'
+                                                }`}
+                                            >
+                                                {subRoute.name}
+                                            </NavLink>
+                                        );
+
+                                        return subRoute.permission ? (
+                                            <Can key={subRoute.path} action={subRoute.permission} matchAny>
+                                                {linkElement}
+                                            </Can>
+                                        ) : (
+                                            linkElement
+                                        );
+                                    })}
                             </div>
                         </div>
                     )}
