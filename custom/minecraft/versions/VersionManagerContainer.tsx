@@ -3,7 +3,6 @@ import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import { ServerContext } from '@/state/server';
 import useFlash from '@/plugins/useFlash';
 import Spinner from '@/components/elements/Spinner';
-import Button from '@/components/elements/Button';
 import classNames from 'classnames';
 import {
     CheckCircleIcon,
@@ -24,7 +23,8 @@ import {
 } from '@/api/server/minecraft/versions';
 
 export default () => {
-    const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
+    const server = ServerContext.useStoreState((state) => state.server.data);
+    const uuid = server?.uuid || '';
     const { clearFlashes, clearAndAddHttpError, addFlash } = useFlash();
 
     const [activeSoftware, setActiveSoftware] = useState<SoftwareType>('arclight');
@@ -129,14 +129,15 @@ export default () => {
                                 />
                                 Backup server.jar
                             </label>
-                            <Button.Text
+                            <button
+                                type={'button'}
                                 onClick={() => loadVersions(activeSoftware)}
                                 disabled={loading}
-                                className={'flex items-center gap-1.5 text-xs'}
+                                className={'flex items-center gap-1.5 rounded-xl bg-neutral-800/80 hover:bg-neutral-700 px-3 py-2 text-xs font-medium text-neutral-300 border border-neutral-700/60 transition'}
                             >
                                 <RefreshIcon className={classNames('w-4 h-4', { 'animate-spin': loading })} />
                                 Refresh
-                            </Button.Text>
+                            </button>
                         </div>
                     </div>
 
@@ -247,14 +248,15 @@ export default () => {
                                         <span className={'text-[11px] text-gray-500 font-mono'}>
                                             server.jar
                                         </span>
-                                        <Button
+                                        <button
+                                            type={'button'}
                                             onClick={() => handleInstall(item)}
                                             disabled={!!switching}
-                                            className={'text-xs font-bold px-3 py-1.5'}
+                                            className={'flex items-center gap-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold text-xs px-3 py-1.5 transition shadow-sm'}
                                         >
                                             <DownloadIcon className={'w-3.5 h-3.5 mr-1'} />
                                             {switching === item.name ? 'Installing...' : 'Install'}
-                                        </Button>
+                                        </button>
                                     </div>
                                 </div>
                             ))}

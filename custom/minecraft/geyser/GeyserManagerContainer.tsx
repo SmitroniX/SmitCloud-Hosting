@@ -3,7 +3,6 @@ import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import { ServerContext } from '@/state/server';
 import useFlash from '@/plugins/useFlash';
 import Spinner from '@/components/elements/Spinner';
-import Button from '@/components/elements/Button';
 import classNames from 'classnames';
 import {
     CheckCircleIcon,
@@ -29,9 +28,10 @@ import {
 import copy from 'copy-to-clipboard';
 
 export default () => {
-    const uuid = ServerContext.useStoreState((state) => state.server.data!.uuid);
-    const serverName = ServerContext.useStoreState((state) => state.server.data!.name);
-    const allocations = ServerContext.useStoreState((state) => state.server.data!.allocations);
+    const server = ServerContext.useStoreState((state) => state.server.data);
+    const uuid = server?.uuid || '';
+    const serverName = server?.name || 'Minecraft Server';
+    const allocations = server?.allocations || [];
     const defaultAllocation = allocations.find((a) => a.isDefault) || allocations[0];
 
     const { clearFlashes, clearAndAddHttpError, addFlash } = useFlash();
@@ -253,14 +253,15 @@ export default () => {
                         </div>
 
                         <div className={'flex items-center gap-2 self-start md:self-auto'}>
-                            <Button.Text
+                            <button
+                                type={'button'}
                                 onClick={refreshStatus}
                                 disabled={loading || actionLoading}
-                                className={'flex items-center gap-1.5'}
+                                className={'flex items-center gap-1.5 rounded-xl bg-neutral-800/80 hover:bg-neutral-700 px-3 py-2 text-xs font-medium text-neutral-300 border border-neutral-700/60 transition'}
                             >
                                 <RefreshIcon className={classNames('w-4 h-4', { 'animate-spin': loading })} />
                                 Refresh
-                            </Button.Text>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -290,13 +291,14 @@ export default () => {
                                             directly using their free Xbox Gamertag without needing a paid Java account!
                                         </p>
                                     </div>
-                                    <Button
+                                    <button
+                                        type={'button'}
                                         onClick={handleAutoSetup}
                                         disabled={actionLoading}
-                                        className={'shrink-0 text-sm font-bold shadow-lg shadow-cyan-500/20'}
+                                        className={'shrink-0 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-cyan-600/20 transition'}
                                     >
                                         {actionLoading ? 'Configuring Crossplay...' : '⚡ Enable Bedrock Crossplay'}
-                                    </Button>
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -412,13 +414,14 @@ export default () => {
                                     </p>
                                 </div>
                                 <div className={'flex items-center gap-2'}>
-                                    <Button.Text
+                                    <button
+                                        type={'button'}
                                         onClick={handleAutoOptimize}
                                         disabled={actionLoading}
-                                        className={'text-xs font-semibold text-cyan-400 hover:text-cyan-300'}
+                                        className={'text-xs font-semibold text-cyan-400 hover:text-cyan-300 px-2 py-1 rounded-lg hover:bg-cyan-950/40 transition'}
                                     >
                                         ✨ Apply Optimal Auto-Config
-                                    </Button.Text>
+                                    </button>
                                 </div>
                             </div>
 
@@ -541,13 +544,14 @@ export default () => {
                                     )}
                                 </div>
                                 <div className={'flex items-center gap-3'}>
-                                    <Button
+                                    <button
+                                        type={'button'}
                                         onClick={handleSaveConfig}
                                         disabled={actionLoading}
-                                        className={'text-sm font-bold shadow-lg shadow-cyan-500/20'}
+                                        className={'rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-cyan-600/20 transition'}
                                     >
                                         {actionLoading ? 'Saving...' : '💾 Save Configuration'}
-                                    </Button>
+                                    </button>
                                 </div>
                             </div>
                         </div>
