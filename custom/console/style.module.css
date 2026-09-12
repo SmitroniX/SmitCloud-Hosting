@@ -23,6 +23,8 @@
     background: #05070d;
     border: 1px solid rgba(56, 189, 248, 0.25);
     box-shadow: 0 10px 35px -10px rgba(0, 0, 0, 0.8), 0 0 25px -5px rgba(56, 189, 248, 0.12);
+    overscroll-behavior: contain;
+    overscroll-behavior-y: contain;
 
     & .overflows_container {
         @apply w-full;
@@ -31,9 +33,15 @@
     & > .container {
         @apply p-3 sm:p-4 min-h-[18rem] sm:min-h-[24rem] flex-1 font-mono text-sm;
         background: #05070d;
+        overscroll-behavior: contain;
+        overscroll-behavior-y: contain;
+        touch-action: none;
 
         & #terminal {
             @apply h-full;
+            overscroll-behavior: contain;
+            overscroll-behavior-y: contain;
+            touch-action: none;
 
             &::-webkit-scrollbar-track {
                 @apply w-2;

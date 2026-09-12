@@ -16,6 +16,7 @@ import ServerActivityLogContainer from '@/components/server/ServerActivityLogCon
 import PluginManagerContainer from '@/components/server/minecraft/plugins/PluginManagerContainer';
 import PlayerManagerContainer from '@/components/server/minecraft/players/PlayerManagerContainer';
 import PropertiesEditorContainer from '@/components/server/minecraft/properties/PropertiesEditorContainer';
+import GeyserManagerContainer from '@/components/server/minecraft/geyser/GeyserManagerContainer';
 
 // Each of the router files is already code split out appropriately — so
 // all of the items above will only be loaded in when that router is loaded.
@@ -142,6 +143,12 @@ export default {
             permission: 'file.*',
             name: 'Server Properties',
             component: PropertiesEditorContainer,
+        },
+        {
+            path: '/minecraft/geyser',
+            permission: 'file.*',
+            name: 'Bedrock Crossplay',
+            component: GeyserManagerContainer,
         },
         {
             path: '/settings',

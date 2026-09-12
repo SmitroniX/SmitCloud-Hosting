@@ -246,12 +246,50 @@ select:focus {
     outline: none !important;
 }
 
-/* Terminal & Console Box */
+/* Terminal & Console Scrolling & Viewport Isolation */
 .xterm,
 .xterm-viewport,
-.xterm-screen {
+.xterm-screen,
+.xterm-screen canvas,
+div[class*="style__container"],
+div[class*="style__terminal"] {
+    overscroll-behavior: contain !important;
+    overscroll-behavior-y: contain !important;
+}
+
+.xterm,
+.xterm-screen,
+.xterm-screen canvas {
+    touch-action: none !important;
+}
+
+.xterm-viewport {
     background: #05070d !important;
     font-family: 'JetBrains Mono', monospace !important;
+    overscroll-behavior: contain !important;
+    overscroll-behavior-y: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+}
+
+/* Styled Scrollbar for Terminal */
+.xterm-viewport::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.xterm-viewport::-webkit-scrollbar-track {
+    background: #05070d !important;
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.25) !important;
+    border-radius: 9999px !important;
+    border: 1px solid rgba(56, 189, 248, 0.1) !important;
+    transition: background 0.2s ease !important;
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb:hover {
+    background: rgba(56, 189, 248, 0.5) !important;
 }
 
 /* Ensure no text clipping or iOS zoom on command input */

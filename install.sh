@@ -625,10 +625,12 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/console/Console.tsx" ]] && cp -f "${CUSTOM_DIR}/console/Console.tsx" /var/www/pterodactyl/resources/scripts/components/server/console/
         [[ -f "${CUSTOM_DIR}/console/style.module.css" ]] && cp -f "${CUSTOM_DIR}/console/style.module.css" /var/www/pterodactyl/resources/scripts/components/server/console/
         [[ -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/
+        [[ -f "${CUSTOM_DIR}/minecraft/geyser/GeyserManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/geyser/GeyserManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/geyser/
         [[ -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/
         [[ -f "${CUSTOM_DIR}/minecraft/plugins/PluginManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/plugins/PluginManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins/
         [[ -f "${CUSTOM_DIR}/minecraft/api/players.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/players.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/api/plugins.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/plugins.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/geyser.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/geyser.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" /var/www/pterodactyl/resources/scripts/routers/routes.ts
     else
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/auth/LoginFormContainer.tsx "${REPO_RAW}/custom/branding/LoginFormContainer.tsx" || true
@@ -641,10 +643,12 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/console/Console.tsx "${REPO_RAW}/custom/console/Console.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/console/style.module.css "${REPO_RAW}/custom/console/style.module.css" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/PropertiesEditorContainer.tsx "${REPO_RAW}/custom/minecraft/properties/PropertiesEditorContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/geyser/GeyserManagerContainer.tsx "${REPO_RAW}/custom/minecraft/geyser/GeyserManagerContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/PlayerManagerContainer.tsx "${REPO_RAW}/custom/minecraft/players/PlayerManagerContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins/PluginManagerContainer.tsx "${REPO_RAW}/custom/minecraft/plugins/PluginManagerContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/players.ts "${REPO_RAW}/custom/minecraft/api/players.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/plugins.ts "${REPO_RAW}/custom/minecraft/api/plugins.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/geyser.ts "${REPO_RAW}/custom/minecraft/api/geyser.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/routes.ts "${REPO_RAW}/custom/minecraft/routes/routes.ts" || true
     fi
 

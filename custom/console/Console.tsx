@@ -51,12 +51,15 @@ const terminalProps: ITerminalOptions = {
     fontFamily: '"JetBrains Mono", Menlo, Monaco, Consolas, monospace',
     lineHeight: 1.25,
     rows: 30,
+    scrollback: 5000,
+    scrollSensitivity: 1,
     theme: theme,
 };
 
 export default () => {
     const TERMINAL_PRELUDE = '\u001b[1m\u001b[33mcontainer@pterodactyl~ \u001b[0m';
     const ref = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const terminal = useMemo(() => new Terminal({ ...terminalProps }), []);
     const fitAddon = useMemo(() => new FitAddon(), []);
@@ -159,6 +162,11 @@ export default () => {
             // Activate Unicode 11 for proper emoji and special character width handling
             terminal.unicode.activeVersion = '11';
 
+            if (terminal.element) {
+                terminal.element.style.overscrollBehavior = 'contain';
+                terminal.element.style.touchAction = 'none';
+            }
+
             setTimeout(() => {
                 try {
                     fitAddon.fit();
@@ -183,6 +191,65 @@ export default () => {
             });
         }
     }, [terminal, connected]);
+
+    useEffect(() => {
+        const el = containerRef.current;
+        if (!el) return;
+
+        let startY = 0;
+
+        const onTouchStart = (e: TouchEvent) => {
+            if (e.touches && e.touches.length > 0) {
+                startY = e.touches[0].pageY;
+            }
+        };
+
+        const onTouchMove = (e: TouchEvent) => {
+            if (e.cancelable) {
+                e.preventDefault();
+            }
+            e.stopPropagation();
+
+            if (e.touches && e.touches.length > 0 && terminal.element) {
+                const currentY = e.touches[0].pageY;
+                const deltaY = startY - currentY;
+                startY = currentY;
+
+                const target = e.target as HTMLElement | null;
+                if (target && !target.closest('.xterm-screen') && !target.closest('.xterm-viewport')) {
+                    const viewport = terminal.element.querySelector('.xterm-viewport');
+                    if (viewport && deltaY !== 0) {
+                        viewport.scrollTop += deltaY;
+                    }
+                }
+            }
+        };
+
+        const onWheel = (e: WheelEvent) => {
+            if (e.cancelable) {
+                e.preventDefault();
+            }
+            e.stopPropagation();
+
+            const target = e.target as HTMLElement | null;
+            if (target && !target.closest('.xterm-screen') && !target.closest('.xterm-viewport') && terminal.element) {
+                const viewport = terminal.element.querySelector('.xterm-viewport');
+                if (viewport && e.deltaY !== 0) {
+                    viewport.scrollTop += e.deltaY;
+                }
+            }
+        };
+
+        el.addEventListener('touchstart', onTouchStart, { passive: true });
+        el.addEventListener('touchmove', onTouchMove, { passive: false });
+        el.addEventListener('wheel', onWheel, { passive: false });
+
+        return () => {
+            el.removeEventListener('touchstart', onTouchStart);
+            el.removeEventListener('touchmove', onTouchMove);
+            el.removeEventListener('wheel', onWheel);
+        };
+    }, [terminal]);
 
     useEffect(() => {
         if (!ref.current || typeof ResizeObserver === 'undefined') return;
@@ -309,6 +376,7 @@ export default () => {
 
             {/* Terminal Body */}
             <div
+                ref={containerRef}
                 className={classNames(styles.container, { 'rounded-b-2xl': !canSendCommands })}
             >
                 <div className={'h-full'}>
