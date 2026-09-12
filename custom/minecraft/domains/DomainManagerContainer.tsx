@@ -31,7 +31,7 @@ import {
 } from '@/api/server/minecraft/domains';
 import DnsInstructionsModal from '@/components/server/minecraft/domains/DnsInstructionsModal';
 
-const AVAILABLE_HOST_DOMAINS = ['shadowpixel.fun', 'smitronix.dev'];
+const AVAILABLE_HOST_DOMAINS = ['shadowpixel.fun'];
 
 export default () => {
     const server = ServerContext.useStoreState((state) => state.server.data);
@@ -390,17 +390,23 @@ export default () => {
                                             onChange={(e) => setSubdomainPrefix(e.currentTarget.value)}
                                             className={'flex-1 bg-transparent px-3.5 py-2 text-xs font-mono text-white placeholder-neutral-500 outline-none'}
                                         />
-                                        <select
-                                            value={subdomainSuffix}
-                                            onChange={(e) => setSubdomainSuffix(e.currentTarget.value)}
-                                            className={'bg-neutral-800 text-emerald-300 font-mono text-xs px-3 border-l border-white/10 outline-none cursor-pointer'}
-                                        >
-                                            {AVAILABLE_HOST_DOMAINS.map((domain) => (
-                                                <option key={domain} value={domain}>
-                                                    .{domain}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        {AVAILABLE_HOST_DOMAINS.length > 1 ? (
+                                            <select
+                                                value={subdomainSuffix}
+                                                onChange={(e) => setSubdomainSuffix(e.currentTarget.value)}
+                                                className={'bg-neutral-800 text-emerald-300 font-mono text-xs px-3 border-l border-white/10 outline-none cursor-pointer'}
+                                            >
+                                                {AVAILABLE_HOST_DOMAINS.map((domain) => (
+                                                    <option key={domain} value={domain}>
+                                                        .{domain}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <span className={'bg-neutral-800/90 text-emerald-300 font-mono text-xs px-3.5 py-2 flex items-center border-l border-white/10 select-none font-bold'}>
+                                                .{AVAILABLE_HOST_DOMAINS[0]}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                                 <button
