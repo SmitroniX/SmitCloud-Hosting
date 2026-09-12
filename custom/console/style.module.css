@@ -1,7 +1,14 @@
 .stat_block {
-    @apply flex items-center rounded shadow-lg relative;
+    @apply flex items-center rounded-xl shadow-lg relative transition-all duration-200;
     @apply col-span-3 md:col-span-2 lg:col-span-6;
     @apply px-3 py-2 md:p-3 lg:p-4;
+    background: #0a0f1d;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    &:hover {
+        border-color: rgba(56, 189, 248, 0.3);
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(56, 189, 248, 0.15);
+    }
 
     & > .status_bar {
         @apply w-1 h-full absolute left-0 top-0 rounded-l sm:hidden;
@@ -68,5 +75,7 @@
 }
 
 .chart_container {
-    @apply bg-gray-600 rounded shadow-lg pt-2 border-b-4 border-gray-700 relative;
+    @apply rounded-xl shadow-lg pt-2 border-b-4 border-cyan-500/30 relative overflow-hidden;
+    background: #0a0f1d;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }

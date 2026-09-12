@@ -162,9 +162,10 @@ export default () => {
             // Activate Unicode 11 for proper emoji and special character width handling
             terminal.unicode.activeVersion = '11';
 
-            if (terminal.element) {
-                terminal.element.style.overscrollBehavior = 'contain';
-                terminal.element.style.touchAction = 'none';
+            const termEl = terminal.element as HTMLElement | undefined;
+            if (termEl?.style) {
+                termEl.style.overscrollBehavior = 'contain';
+                termEl.style.touchAction = 'none';
             }
 
             setTimeout(() => {

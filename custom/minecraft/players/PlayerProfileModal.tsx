@@ -99,9 +99,9 @@ export default ({ visible, onDismiss, serverUuid, profile, loading, onActionSucc
                 key={slot}
                 title={item ? `${formatItemName(item.id)} (${item.id}) - Count: ${item.count}` : label || `Slot ${slot}`}
                 className={classNames(
-                    'relative flex h-11 w-11 items-center justify-center rounded-lg border transition duration-150 select-none group',
+                    'relative flex h-8 w-8 sm:h-9 sm:w-9 md:h-11 md:w-11 items-center justify-center rounded-lg border transition duration-150 select-none group',
                     {
-                        'border-cyan-500/40 bg-neutral-900/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]': !item,
+                        'border-cyan-500/30 bg-neutral-900/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]': !item,
                         'border-cyan-400/80 bg-neutral-850 shadow-[0_0_10px_rgba(6,182,212,0.15)]': item,
                     }
                 )}
@@ -111,13 +111,17 @@ export default ({ visible, onDismiss, serverUuid, profile, loading, onActionSucc
                         <img
                             src={getItemTexture(item.id)}
                             alt={item.id}
-                            className={'h-7 w-7 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]'}
+                            className={'h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]'}
                             onError={(e) => {
-                                // Fallback if image fails to load
-                                (e.target as HTMLElement).style.display = 'none';
+                                const target = e.target as HTMLImageElement;
+                                if (target.src.includes('/textures/item/')) {
+                                    target.src = target.src.replace('/textures/item/', '/textures/block/');
+                                } else {
+                                    target.style.display = 'none';
+                                }
                             }}
                         />
-                        <span className={'pointer-events-none absolute bottom-0.5 right-1 font-mono text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,1)]'}>
+                        <span className={'pointer-events-none absolute bottom-0.5 right-0.5 md:right-1 font-mono text-[9px] sm:text-[10px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,1)]'}>
                             {item.count > 1 ? item.count : ''}
                         </span>
 
@@ -132,7 +136,7 @@ export default ({ visible, onDismiss, serverUuid, profile, loading, onActionSucc
                         </div>
                     </>
                 ) : (
-                    label && <span className={'text-[10px] text-neutral-600 font-mono'}>{label}</span>
+                    label && <span className={'text-[10px] sm:text-xs text-neutral-600 font-mono'}>{label}</span>
                 )}
             </div>
         );

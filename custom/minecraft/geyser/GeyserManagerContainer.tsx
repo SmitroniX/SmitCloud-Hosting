@@ -51,7 +51,7 @@ export default () => {
     const [passthroughMotd, setPassthroughMotd] = useState(true);
     const [passthroughPlayerCounts, setPassthroughPlayerCounts] = useState(true);
 
-    const primaryAddress = defaultAllocation?.ipAlias || defaultAllocation?.ip || 'play.shadowpixel.fun';
+    const primaryAddress = defaultAllocation?.alias || defaultAllocation?.ip || 'play.shadowpixel.fun';
 
     // Check if 19132 is allocated, else suggest default port or 19132
     const bedrockAllocation = allocations.find((a) => a.port === 19132) || allocations.find((a) => a.port !== defaultAllocation?.port) || defaultAllocation;

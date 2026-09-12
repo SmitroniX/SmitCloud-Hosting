@@ -663,8 +663,11 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/minecraft/api/discord.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/discord.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/api/ddos.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/ddos.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/api/domains.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/domains.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        [[ -f "${CUSTOM_DIR}/console/StatBlock.tsx" ]] && cp -f "${CUSTOM_DIR}/console/StatBlock.tsx" /var/www/pterodactyl/resources/scripts/components/server/console/
+        [[ -f "${CUSTOM_DIR}/plugins/useFlash.ts" ]] && cp -f "${CUSTOM_DIR}/plugins/useFlash.ts" /var/www/pterodactyl/resources/scripts/plugins/
         [[ -f "${CUSTOM_DIR}/minecraft/api/portSync.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/portSync.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" /var/www/pterodactyl/resources/scripts/routers/routes.ts
+        [[ -f "${CUSTOM_DIR}/minecraft/routes/ServerRouter.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/ServerRouter.tsx" /var/www/pterodactyl/resources/scripts/routers/ServerRouter.tsx
     else
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/auth/LoginFormContainer.tsx "${REPO_RAW}/custom/branding/LoginFormContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/auth/LoginContainer.tsx "${REPO_RAW}/custom/branding/LoginContainer.tsx" || true
@@ -675,7 +678,9 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/public/nebula.css "${REPO_RAW}/custom/branding/nebula.css" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/console/Console.tsx "${REPO_RAW}/custom/console/Console.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/console/style.module.css "${REPO_RAW}/custom/console/style.module.css" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/console/StatBlock.tsx "${REPO_RAW}/custom/console/StatBlock.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/plugins/XtermScrollDownHelperAddon.ts "${REPO_RAW}/custom/plugins/XtermScrollDownHelperAddon.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/plugins/useFlash.ts "${REPO_RAW}/custom/plugins/useFlash.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/network/NetworkContainer.tsx "${REPO_RAW}/custom/network/NetworkContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/network/AllocationRow.tsx "${REPO_RAW}/custom/network/AllocationRow.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/network/MinecraftPortHero.tsx "${REPO_RAW}/custom/network/MinecraftPortHero.tsx" || true
@@ -703,6 +708,7 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/domains.ts "${REPO_RAW}/custom/minecraft/api/domains.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/portSync.ts "${REPO_RAW}/custom/minecraft/api/portSync.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/routes.ts "${REPO_RAW}/custom/minecraft/routes/routes.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/ServerRouter.tsx "${REPO_RAW}/custom/minecraft/routes/ServerRouter.tsx" || true
     fi
 
     # Deploy pre-compiled frontend assets

@@ -6,7 +6,6 @@ import Spinner from '@/components/elements/Spinner';
 import Button from '@/components/elements/Button';
 import classNames from 'classnames';
 import {
-    ActivityIcon,
     HeartIcon,
     SparklesIcon,
     LightningBoltIcon,

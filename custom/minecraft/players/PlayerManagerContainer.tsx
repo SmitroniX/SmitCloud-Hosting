@@ -22,11 +22,13 @@ import {
     MinecraftPlayer,
     MinecraftBannedIp,
     CachedPlayer,
+    LiveServerStatus,
     getUserCache,
     getWhitelist,
     getOperators,
     getBannedPlayers,
     getBannedIps,
+    getLiveServerStatus,
     sendServerCommand,
     fetchPlayerProfile,
 } from '@/api/server/minecraft/players';
@@ -38,6 +40,11 @@ type FilterTab = 'all' | 'online' | 'offline' | 'ops' | 'whitelist' | 'banned';
 export default () => {
     const server = ServerContext.useStoreState((state) => state.server.data);
     const uuid = server?.uuid || '';
+    const allocations = server?.allocations || [];
+    const defaultAlloc = allocations.find((a) => a.isDefault) || allocations[0];
+    const host = defaultAlloc?.alias || defaultAlloc?.ip || 'play.shadowpixel.fun';
+    const port = defaultAlloc?.port || 25565;
+
     const { clearFlashes, clearAndAddHttpError, addFlash } = useFlash();
 
     const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
@@ -50,6 +57,12 @@ export default () => {
     const [operators, setOperators] = useState<MinecraftPlayer[]>([]);
     const [bannedPlayers, setBannedPlayers] = useState<MinecraftPlayer[]>([]);
     const [bannedIps, setBannedIps] = useState<MinecraftBannedIp[]>([]);
+    const [liveStatus, setLiveStatus] = useState<LiveServerStatus>({
+        online: false,
+        onlinePlayers: 0,
+        maxPlayers: 20,
+        playerList: [],
+    });
 
     // Profile modal state
     const [profileModalVisible, setProfileModalVisible] = useState(false);
@@ -67,12 +80,13 @@ export default () => {
             setLoading(true);
             clearFlashes('players');
 
-            const [cache, wl, ops, bans, ips] = await Promise.all([
+            const [cache, wl, ops, bans, ips, live] = await Promise.all([
                 getUserCache(uuid),
                 getWhitelist(uuid),
                 getOperators(uuid),
                 getBannedPlayers(uuid),
                 getBannedIps(uuid),
+                getLiveServerStatus(host, port),
             ]);
 
             setCachedPlayers(cache);
@@ -80,6 +94,7 @@ export default () => {
             setOperators(ops);
             setBannedPlayers(bans);
             setBannedIps(ips);
+            setLiveStatus(live);
         } catch (error) {
             clearAndAddHttpError({ error, key: 'players' });
         } finally {
@@ -98,18 +113,39 @@ export default () => {
     const wlNames = new Set(whitelist.map((p) => p.name.toLowerCase()));
     const banUuids = new Set(bannedPlayers.map((p) => p.uuid));
     const banNames = new Set(bannedPlayers.map((p) => p.name.toLowerCase()));
+    const onlineUuids = new Set(liveStatus.playerList.map((p) => p.uuid).filter(Boolean));
+    const onlineNames = new Set(liveStatus.playerList.map((p) => p.name.toLowerCase()));
 
-    // Merge cached players with whitelisted, ops, and bans
+    // Merge cached players with whitelisted, ops, bans, and live status
     const playersMap = new Map<string, MinecraftPlayer>();
 
     cachedPlayers.forEach((cp) => {
+        const isOnline = onlineUuids.has(cp.uuid) || onlineNames.has(cp.name.toLowerCase());
         playersMap.set(cp.uuid, {
             uuid: cp.uuid,
             name: cp.name,
+            isOnline,
             isOp: opUuids.has(cp.uuid) || opNames.has(cp.name.toLowerCase()),
             isWhitelisted: wlUuids.has(cp.uuid) || wlNames.has(cp.name.toLowerCase()),
             isBanned: banUuids.has(cp.uuid) || banNames.has(cp.name.toLowerCase()),
         });
+    });
+
+    // Also include any live online players not yet in cache
+    liveStatus.playerList.forEach((lp) => {
+        const key = lp.uuid || lp.name;
+        if (!playersMap.has(key)) {
+            playersMap.set(key, {
+                uuid: lp.uuid,
+                name: lp.name,
+                isOnline: true,
+                isOp: (lp.uuid && opUuids.has(lp.uuid)) || opNames.has(lp.name.toLowerCase()),
+                isWhitelisted: (lp.uuid && wlUuids.has(lp.uuid)) || wlNames.has(lp.name.toLowerCase()),
+                isBanned: (lp.uuid && banUuids.has(lp.uuid)) || banNames.has(lp.name.toLowerCase()),
+            });
+        } else {
+            playersMap.get(key)!.isOnline = true;
+        }
     });
 
     // Also include any operators not yet in cache
@@ -283,6 +319,16 @@ export default () => {
                         </div>
 
                         <div className={'flex flex-wrap items-center gap-3 shrink-0'}>
+                            <div className={'flex items-center gap-2 rounded-xl bg-neutral-900/90 border border-neutral-800 px-3.5 py-2 text-xs'}>
+                                <span className={classNames('h-2.5 w-2.5 rounded-full', {
+                                    'bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.6)]': liveStatus.online,
+                                    'bg-red-500': !liveStatus.online,
+                                })} />
+                                <span className={'font-bold text-white'}>
+                                    {liveStatus.online ? `${liveStatus.onlinePlayers} / ${liveStatus.maxPlayers} Online` : 'Server Offline'}
+                                </span>
+                            </div>
+
                             <button
                                 type={'button'}
                                 onClick={loadAllData}
@@ -296,7 +342,11 @@ export default () => {
                     </div>
 
                     {/* Quick Stats Counter Strip */}
-                    <div className={'grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-neutral-800/80 text-xs'}>
+                    <div className={'grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6 pt-5 border-t border-neutral-800/80 text-xs'}>
+                        <div className={'rounded-xl bg-neutral-900/60 border border-neutral-800/70 p-3'}>
+                            <span className={'text-neutral-500 block text-[10px] uppercase font-bold'}>Online Now</span>
+                            <span className={'text-xl font-black text-emerald-400 mt-0.5 block'}>{liveStatus.online ? liveStatus.onlinePlayers : 0}</span>
+                        </div>
                         <div className={'rounded-xl bg-neutral-900/60 border border-neutral-800/70 p-3'}>
                             <span className={'text-neutral-500 block text-[10px] uppercase font-bold'}>Registered Players</span>
                             <span className={'text-xl font-black text-white mt-0.5 block'}>{cachedPlayers.length}</span>
@@ -321,7 +371,8 @@ export default () => {
                     <div className={'flex flex-wrap items-center gap-1.5'}>
                         {[
                             { id: 'all' as FilterTab, label: 'All Players', count: allPlayersList.length },
-                            { id: 'offline' as FilterTab, label: '⚪ Offline Players', count: allPlayersList.filter((p) => !p.isOnline).length },
+                            { id: 'online' as FilterTab, label: '🟢 Online', count: allPlayersList.filter((p) => p.isOnline).length },
+                            { id: 'offline' as FilterTab, label: '⚪ Offline', count: allPlayersList.filter((p) => !p.isOnline).length },
                             { id: 'ops' as FilterTab, label: '⭐ Operators', count: operators.length },
                             { id: 'whitelist' as FilterTab, label: '📋 Whitelist', count: whitelist.length },
                             { id: 'banned' as FilterTab, label: '🚫 Banned', count: bannedPlayers.length + bannedIps.length },

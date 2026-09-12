@@ -33,6 +33,83 @@ export interface CachedPlayer {
     expiresOn?: string;
 }
 
+export interface LivePlayerInfo {
+    uuid?: string;
+    name: string;
+}
+
+export interface LiveServerStatus {
+    online: boolean;
+    onlinePlayers: number;
+    maxPlayers: number;
+    playerList: LivePlayerInfo[];
+}
+
+export const getLiveServerStatus = async (host: string, port: number): Promise<LiveServerStatus> => {
+    try {
+        const res = await axios.get(`https://api.mcstatus.io/v2/status/java/${encodeURIComponent(host)}:${port}`, {
+            timeout: 3500,
+        });
+        if (res.data && typeof res.data.online === 'boolean') {
+            const list: LivePlayerInfo[] = [];
+            if (Array.isArray(res.data.players?.list)) {
+                res.data.players.list.forEach((p: any) => {
+                    const name = p.name_clean || p.name_raw || p.name;
+                    if (name) {
+                        list.push({
+                            uuid: p.uuid,
+                            name,
+                        });
+                    }
+                });
+            }
+            return {
+                online: res.data.online,
+                onlinePlayers: res.data.players?.online ?? 0,
+                maxPlayers: res.data.players?.max ?? 20,
+                playerList: list,
+            };
+        }
+    } catch {
+        // Fallback
+    }
+
+    try {
+        const res = await axios.get(`https://api.mcsrvstat.us/3/${encodeURIComponent(host)}:${port}`, {
+            timeout: 3500,
+        });
+        if (res.data && typeof res.data.online === 'boolean') {
+            const list: LivePlayerInfo[] = [];
+            if (Array.isArray(res.data.players?.list)) {
+                res.data.players.list.forEach((p: any) => {
+                    const name = typeof p === 'string' ? p : p.name;
+                    if (name) {
+                        list.push({
+                            uuid: typeof p === 'object' ? p.uuid : undefined,
+                            name,
+                        });
+                    }
+                });
+            }
+            return {
+                online: res.data.online,
+                onlinePlayers: res.data.players?.online ?? 0,
+                maxPlayers: res.data.players?.max ?? 20,
+                playerList: list,
+            };
+        }
+    } catch {
+        // Fallback failed
+    }
+
+    return {
+        online: false,
+        onlinePlayers: 0,
+        maxPlayers: 20,
+        playerList: [],
+    };
+};
+
 export const sendServerCommand = async (uuid: string, command: string): Promise<void> => {
     await http.post(`/api/client/servers/${uuid}/command`, { command });
 };
