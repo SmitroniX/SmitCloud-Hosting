@@ -82,6 +82,7 @@ export default () => {
         { path: '/minecraft/auth', name: '🔐 Hybrid Auth', category: 'config', permission: 'file.*' },
         { path: '/minecraft/map', name: '🗺️ 3D Map', category: 'config', permission: 'file.*' },
         // Players & Community
+        { path: '/minecraft/roles', name: '👑 Roles & TabList', category: 'community', permission: 'file.*' },
         { path: '/minecraft/players', name: '👥 Players', category: 'community', permission: 'file.*' },
         { path: '/minecraft/moderation', name: '🛡️ Moderation', category: 'community', permission: 'file.*' },
         { path: '/minecraft/discord', name: '💬 Discord', category: 'community', permission: 'file.*' },

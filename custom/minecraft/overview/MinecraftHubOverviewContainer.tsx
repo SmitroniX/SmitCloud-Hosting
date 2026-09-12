@@ -31,6 +31,7 @@ import {
     ChevronRightIcon,
     RefreshIcon,
     KeyIcon,
+    UserGroupIcon,
 } from '@heroicons/react/solid';
 
 interface HubTool {
@@ -152,6 +153,15 @@ const HUB_TOOLS: HubTool[] = [
     },
 
     // Players & Community
+    {
+        title: 'Roles & TabList Studio',
+        path: '/minecraft/roles',
+        category: 'community',
+        description: 'Enterprise LuckPerms permissions, rank inheritance, and synchronized TabList / 3D nametag formatting.',
+        icon: UserGroupIcon,
+        accentColor: 'from-purple-600 via-indigo-600 to-amber-500 text-purple-400 border-purple-500/30',
+        badge: 'LuckPerms + TAB',
+    },
     {
         title: 'Player Manager',
         path: '/minecraft/players',
