@@ -611,6 +611,7 @@ apply_smitcloud_customizations() {
     log_info "Injecting SmitCloud templates and Minecraft modules..."
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/players
+    mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins
     mkdir -p /var/www/pterodactyl/resources/scripts/api/server/minecraft
 
     if [[ -d "${CUSTOM_DIR}" ]]; then
@@ -623,7 +624,9 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/branding/nebula.css" ]] && cp -f "${CUSTOM_DIR}/branding/nebula.css" /var/www/pterodactyl/public/nebula.css
         [[ -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/
         [[ -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/
+        [[ -f "${CUSTOM_DIR}/minecraft/plugins/PluginManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/plugins/PluginManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins/
         [[ -f "${CUSTOM_DIR}/minecraft/api/players.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/players.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/plugins.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/plugins.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" /var/www/pterodactyl/resources/scripts/routers/routes.ts
     else
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/auth/LoginFormContainer.tsx "${REPO_RAW}/custom/branding/LoginFormContainer.tsx" || true
@@ -635,7 +638,9 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/public/nebula.css "${REPO_RAW}/custom/branding/nebula.css" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/PropertiesEditorContainer.tsx "${REPO_RAW}/custom/minecraft/properties/PropertiesEditorContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/PlayerManagerContainer.tsx "${REPO_RAW}/custom/minecraft/players/PlayerManagerContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins/PluginManagerContainer.tsx "${REPO_RAW}/custom/minecraft/plugins/PluginManagerContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/players.ts "${REPO_RAW}/custom/minecraft/api/players.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/plugins.ts "${REPO_RAW}/custom/minecraft/api/plugins.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/routes.ts "${REPO_RAW}/custom/minecraft/routes/routes.ts" || true
     fi
 

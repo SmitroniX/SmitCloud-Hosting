@@ -13,6 +13,7 @@ import AccountApiContainer from '@/components/dashboard/AccountApiContainer';
 import AccountSSHContainer from '@/components/dashboard/ssh/AccountSSHContainer';
 import ActivityLogContainer from '@/components/dashboard/activity/ActivityLogContainer';
 import ServerActivityLogContainer from '@/components/server/ServerActivityLogContainer';
+import PluginManagerContainer from '@/components/server/minecraft/plugins/PluginManagerContainer';
 import PlayerManagerContainer from '@/components/server/minecraft/players/PlayerManagerContainer';
 import PropertiesEditorContainer from '@/components/server/minecraft/properties/PropertiesEditorContainer';
 
@@ -123,6 +124,12 @@ export default {
             permission: 'startup.*',
             name: 'Startup',
             component: StartupContainer,
+        },
+        {
+            path: '/minecraft/plugins',
+            permission: 'file.*',
+            name: 'Plugin Manager',
+            component: PluginManagerContainer,
         },
         {
             path: '/minecraft/players',
