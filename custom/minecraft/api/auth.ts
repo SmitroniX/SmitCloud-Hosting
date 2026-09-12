@@ -123,6 +123,7 @@ premiumUuid: true
 autoLoginFloodgate: ${settings.bedrockAutoLogin}
 allowFloodgateNameConflict: true
 autoRegisterFloodgate: ${settings.bedrockAutoLogin}
+secondAttemptCracked: true
 
 # Skin forwarding
 forwardSkin: ${settings.restoreSkins}
@@ -141,6 +142,7 @@ export const generateFastLoginMessages = (settings: HybridAuthSettings): string 
 auto-login: '&b&l${brand} &8» &a✔ Official Mojang account detected! Logged in automatically.'
 auto-register: '&b&l${brand} &8» &a✔ Premium account secured & registered.'
 add-premium: '&b&l${brand} &8» &a✔ Added to verified premium players list.'
+remove-premium: '&e&l${brand} &8» &eYou are now registered as a cracked account.'
 premium-warning: '&e&l${brand} &8» &c&lWARNING: &6Only run this command if you are the owner of this official Minecraft account. Type &a/premium&6 again to confirm.'
 `;
 };
@@ -153,6 +155,11 @@ export const generateAuthMeConfig = (settings: HybridAuthSettings, existingYaml?
         // Enable Floodgate hook
         if (settings.bedrockAutoLogin) {
             updated = updated.replace(/floodgate:\s*false/i, 'floodgate: true');
+        }
+        // Allow /premium, /prem, /cracked before registration
+        if (!updated.includes('/premium')) {
+            updated = updated.replace(/- '\/reg'/i, "- '/reg'\n      - '/premium'\n      - '/prem'\n      - '/cracked'");
+            updated = updated.replace(/- \/reg/i, "- /reg\n        - /premium\n        - /prem\n        - /cracked");
         }
         return updated;
     }
@@ -177,6 +184,9 @@ settings:
       - '/register'
       - '/l'
       - '/reg'
+      - '/premium'
+      - '/prem'
+      - '/cracked'
   sessions:
     enabled: true
     timeout: ${settings.sessionCacheMinutes}
@@ -258,4 +268,25 @@ export const applyHybridAuthSuite = async (uuid: string, settings: HybridAuthSet
 
     const authMeYaml = generateAuthMeConfig(settings, existingAuthMe);
     await saveFileContents(uuid, '/plugins/AuthMe/config.yml', authMeYaml);
+
+    // 8. Configure AuthMe messages_en.yml with interactive premium prompt
+    try {
+        await createDirectory(uuid, '/plugins/AuthMe', 'messages');
+    } catch {
+        // ignore
+    }
+
+    try {
+        let msgEn = await getFileContents(uuid, '/plugins/AuthMe/messages/messages_en.yml');
+        const brand = settings.serverBrandingName.toUpperCase();
+        if (!msgEn.includes('/premium')) {
+            msgEn = msgEn.replace(
+                /register_request:.*$/m,
+                `register_request: '&8====================================================%nl%&b&l  ${brand} NETWORK &8» &fWelcome &e%username%&f!%nl%&6  Are you playing with an &a&lOFFICIAL MOJANG (PREMIUM)&6 account?%nl%&a  » &a&lPREMIUM PLAYER? &fType &b/premium &fto skip all passwords forever!%nl%&c  » &c&lCRACKED PLAYER? &fType &e/register <password> <password>%nl%&8===================================================='`
+            );
+            await saveFileContents(uuid, '/plugins/AuthMe/messages/messages_en.yml', msgEn);
+        }
+    } catch {
+        // ignore
+    }
 };
