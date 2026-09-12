@@ -67,6 +67,7 @@ export default () => {
         { path: '/minecraft/version', name: '⚡ Software & Version', permission: 'file.*' },
         { path: '/minecraft/plugins', name: '🔌 Plugins', permission: 'file.*' },
         { path: '/minecraft/mods', name: '📦 Mods', permission: 'file.*' },
+        { path: '/minecraft/modpacks', name: '🎁 Modpacks', permission: 'file.*' },
         { path: '/minecraft/worlds', name: '🗺️ Worlds & Maps', permission: 'file.*' },
         { path: '/minecraft/players', name: '👥 Players', permission: 'file.*' },
         { path: '/minecraft/geyser', name: '🎮 Bedrock Crossplay', permission: 'file.*' },

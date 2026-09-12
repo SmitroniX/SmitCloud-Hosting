@@ -669,6 +669,9 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/minecraft/api/mods.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/mods.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/mods
         [[ -f "${CUSTOM_DIR}/minecraft/mods/ModManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/mods/ModManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/mods/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/modpacks.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/modpacks.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/modpacks
+        [[ -f "${CUSTOM_DIR}/minecraft/modpacks/ModpackManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/modpacks/ModpackManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/modpacks/
         [[ -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" /var/www/pterodactyl/resources/scripts/routers/routes.ts
         [[ -f "${CUSTOM_DIR}/minecraft/routes/ServerRouter.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/ServerRouter.tsx" /var/www/pterodactyl/resources/scripts/routers/ServerRouter.tsx
     else
@@ -713,6 +716,9 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/mods.ts "${REPO_RAW}/custom/minecraft/api/mods.ts" || true
         mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/mods
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/mods/ModManagerContainer.tsx "${REPO_RAW}/custom/minecraft/mods/ModManagerContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/modpacks.ts "${REPO_RAW}/custom/minecraft/api/modpacks.ts" || true
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/modpacks
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/modpacks/ModpackManagerContainer.tsx "${REPO_RAW}/custom/minecraft/modpacks/ModpackManagerContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/routes.ts "${REPO_RAW}/custom/minecraft/routes/routes.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/ServerRouter.tsx "${REPO_RAW}/custom/minecraft/routes/ServerRouter.tsx" || true
     fi

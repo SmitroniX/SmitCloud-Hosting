@@ -24,6 +24,7 @@ import DiscordIntegrationContainer from '@/components/server/minecraft/discord/D
 import DDoSProtectionContainer from '@/components/server/minecraft/ddos/DDoSProtectionContainer';
 import DomainManagerContainer from '@/components/server/minecraft/domains/DomainManagerContainer';
 import ModManagerContainer from '@/components/server/minecraft/mods/ModManagerContainer';
+import ModpackManagerContainer from '@/components/server/minecraft/modpacks/ModpackManagerContainer';
 
 // Each of the router files is already code split out appropriately — so
 // all of the items above will only be loaded in when that router is loaded.
@@ -150,6 +151,12 @@ export default {
             permission: 'file.*',
             name: 'Mod Manager',
             component: ModManagerContainer,
+        },
+        {
+            path: '/minecraft/modpacks',
+            permission: 'file.*',
+            name: 'Modpack Manager',
+            component: ModpackManagerContainer,
         },
         {
             path: '/minecraft/worlds',
