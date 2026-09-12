@@ -79,6 +79,7 @@ export default () => {
         { path: '/minecraft/motd', name: '🎨 MOTD & Icon', category: 'config', permission: 'file.*' },
         { path: '/minecraft/domain', name: '🌐 Custom Domains', category: 'config', permission: 'allocation.*' },
         { path: '/minecraft/geyser', name: '🎮 Bedrock Crossplay', category: 'config', permission: 'file.*' },
+        { path: '/minecraft/auth', name: '🔐 Hybrid Auth', category: 'config', permission: 'file.*' },
         { path: '/minecraft/map', name: '🗺️ 3D Map', category: 'config', permission: 'file.*' },
         // Players & Community
         { path: '/minecraft/players', name: '👥 Players', category: 'community', permission: 'file.*' },

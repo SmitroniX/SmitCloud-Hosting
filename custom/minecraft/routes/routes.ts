@@ -32,6 +32,7 @@ const ModerationContainer = lazy(() => import(/* webpackChunkName: "mc-moderatio
 const DatapackManagerContainer = lazy(() => import(/* webpackChunkName: "mc-datapacks" */ '@/components/server/minecraft/datapacks/DatapackManagerContainer'));
 const OptimizerContainer = lazy(() => import(/* webpackChunkName: "mc-optimizer" */ '@/components/server/minecraft/optimizer/OptimizerContainer'));
 const LiveMapContainer = lazy(() => import(/* webpackChunkName: "mc-map" */ '@/components/server/minecraft/map/LiveMapContainer'));
+const HybridAuthContainer = lazy(() => import(/* webpackChunkName: "mc-auth" */ '@/components/server/minecraft/auth/HybridAuthContainer'));
 
 // Each of the router files is already code split out appropriately — so
 // all of the items above will only be loaded in when that router is loaded.
@@ -255,6 +256,12 @@ export default {
             permission: 'file.*',
             name: '3D Live Map',
             component: LiveMapContainer,
+        },
+        {
+            path: '/minecraft/auth',
+            permission: 'file.*',
+            name: 'Hybrid Auth & Auto-Login',
+            component: HybridAuthContainer,
         },
         {
             path: '/settings',

@@ -690,6 +690,9 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/minecraft/api/map.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/map.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/map
         [[ -f "${CUSTOM_DIR}/minecraft/map/LiveMapContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/map/LiveMapContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/map/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/auth.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/auth.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/auth
+        [[ -f "${CUSTOM_DIR}/minecraft/auth/HybridAuthContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/auth/HybridAuthContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/auth/
         mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/overview
         [[ -f "${CUSTOM_DIR}/minecraft/overview/MinecraftHubOverviewContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/overview/MinecraftHubOverviewContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/overview/
         [[ -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" /var/www/pterodactyl/resources/scripts/routers/routes.ts
@@ -757,6 +760,9 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/map.ts "${REPO_RAW}/custom/minecraft/api/map.ts" || true
         mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/map
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/map/LiveMapContainer.tsx "${REPO_RAW}/custom/minecraft/map/LiveMapContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/auth.ts "${REPO_RAW}/custom/minecraft/api/auth.ts" || true
+        mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/auth
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/auth/HybridAuthContainer.tsx "${REPO_RAW}/custom/minecraft/auth/HybridAuthContainer.tsx" || true
         mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/overview
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/overview/MinecraftHubOverviewContainer.tsx "${REPO_RAW}/custom/minecraft/overview/MinecraftHubOverviewContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/routes.ts "${REPO_RAW}/custom/minecraft/routes/routes.ts" || true

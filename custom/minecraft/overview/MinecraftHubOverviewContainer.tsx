@@ -30,6 +30,7 @@ import {
     ServerIcon,
     ChevronRightIcon,
     RefreshIcon,
+    KeyIcon,
 } from '@heroicons/react/solid';
 
 interface HubTool {
@@ -130,6 +131,15 @@ const HUB_TOOLS: HubTool[] = [
         icon: ServerIcon,
         accentColor: 'from-green-500 to-emerald-500 text-green-400 border-green-500/30',
         badge: 'GeyserMC',
+    },
+    {
+        title: 'Hybrid Auth & Auto-Login',
+        path: '/minecraft/auth',
+        category: 'config',
+        description: 'Auto-login for official Mojang Java and Xbox Bedrock players with offline password vault.',
+        icon: KeyIcon,
+        accentColor: 'from-amber-500 via-orange-500 to-yellow-500 text-amber-400 border-amber-500/30',
+        badge: 'Auto-Login',
     },
     {
         title: '3D Live Web Map',
