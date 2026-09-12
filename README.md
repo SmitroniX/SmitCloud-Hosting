@@ -224,11 +224,32 @@ For Minecraft game servers, the panel includes dedicated management tabs in the 
 - **Test Webhook**: 1-click direct test embed dispatch to verify Discord webhook connectivity.
 - **Public Status Card**: Real-time live status badge generator with copyable Markdown and HTML iframe embed codes.
 
-### 👤 Player Manager Section (`/minecraft/players`)
-- **Live Command Center**: Instantly **Kick**, **Ban**, **OP / De-OP**, or execute **Kill** and **Gamemode** commands on target players.
-- **Whitelist Management**: View whitelisted players with live Minecraft avatars, add/remove players, and toggle Whitelist ON/OFF.
-- **Server Operators (OPs)**: View current operators with their permission levels, grant OP, and revoke OP.
-- **Bans (Players & IPs)**: View banned players and banned IP addresses with ban reasons, issue bans, and unban/pardon with one click.
+### 👤 Player Manager & Live NBT Inventory Inspector (`/minecraft/players`)
+- **Active & Offline Player Lists**: Filter players by **All**, **Online Now**, **Offline**, **Operators**, **Whitelist**, and **Banned**.
+- **3D Skins & Avatars**: Dynamic 3D isometric character models and high-resolution player head renders.
+- **Interactive Player Profile Modal**:
+  - **Live Location**: Exact X, Y, Z coordinates, rotation, and current dimension (🌲 Overworld, 🔥 Nether, 🌌 The End).
+  - **Player Vitals**: Real-time Health (hearts), Hunger (food level), and XP Level with progress bar.
+  - **Inventory Matrix**: Authentic Minecraft GUI layout displaying Armor slots, Off-hand slot, 27-slot Main Inventory, and 9-slot Hotbar.
+  - **Ender Chest Inspection**: View all items stored in the player's personal Ender Chest.
+  - **Item Details & Tooltips**: Hover tooltips showing item display names, item IDs, stack counts, and durability damage.
+- **Admin Power Actions**:
+  - 📍 **Teleport Controls**: Teleport to spawn, teleport to another player, or teleport to custom X, Y, Z coordinates.
+  - 💖 **Instant Heal & Feed**: Restores full hearts and food with 1-click.
+  - 🎮 **Gamemode Switcher**: Instant buttons for Survival, Creative, Adventure, and Spectator.
+  - 🎁 **Give Item**: Prompt to send any Minecraft item ID and quantity directly to the player.
+  - 🧹 **Clear Inventory**: Clears all items in inventory.
+  - ⚡ **Smite with Lightning**: Executes strike on target player location.
+  - 🔨 **Moderation**: Kick, Ban, Pardon, OP / De-OP, and Whitelist toggles.
+
+### 🛡️ DDoS Protection & Network Security Suite (`/minecraft/ddos`)
+- **Multi-Layer Mitigation Presets**:
+  - 🛡️ **Standard Shield**: Everyday balanced defense with 4000ms join throttle, optimal 256B compression threshold, and kernel-level SYN flood protection.
+  - ⚡ **High-Security Shield**: Active botnet defense dropping public proxies, VPNs, and Tor exit nodes (`prevent-proxy-connections: true`).
+  - 🚨 **Emergency Lockdown**: Instantly engages server Whitelist to drop all unverified incoming handshakes under massive attack.
+- **DDoS Filters**: Stateful TCP SYN flood defense, UDP Bedrock reflection filter for Geyser (Port 19132), and anti-decompression bomb protection.
+- **Firewall IP Blacklist**: Real-time blocked IP table with 1-click IP blocking and unblocking.
+- **Origin Masking & DNS Shield**: Auto-generated SRV record generator (`_minecraft._tcp.play...`) to hide VPS origin IPs via reverse proxies like TCPShield or Cloudflare Spectrum.
 
 ### ⚙️ Visual `server.properties` Editor (`/minecraft/properties`)
 - **Categorized Controls**: Properties organized into intuitive sections: General, World, Spawning, Player, Performance, and RCON.

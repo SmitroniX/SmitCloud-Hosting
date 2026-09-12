@@ -21,6 +21,7 @@ import VersionManagerContainer from '@/components/server/minecraft/versions/Vers
 import WorldManagerContainer from '@/components/server/minecraft/worlds/WorldManagerContainer';
 import HealthMonitorContainer from '@/components/server/minecraft/health/HealthMonitorContainer';
 import DiscordIntegrationContainer from '@/components/server/minecraft/discord/DiscordIntegrationContainer';
+import DDoSProtectionContainer from '@/components/server/minecraft/ddos/DDoSProtectionContainer';
 
 // Each of the router files is already code split out appropriately — so
 // all of the items above will only be loaded in when that router is loaded.
@@ -177,6 +178,12 @@ export default {
             permission: 'file.*',
             name: 'Discord & Widget',
             component: DiscordIntegrationContainer,
+        },
+        {
+            path: '/minecraft/ddos',
+            permission: 'file.*',
+            name: 'DDoS & Security',
+            component: DDoSProtectionContainer,
         },
         {
             path: '/settings',
