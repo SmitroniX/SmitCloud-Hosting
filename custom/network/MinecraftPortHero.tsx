@@ -9,6 +9,7 @@ import {
     DeviceMobileIcon,
     DuplicateIcon,
     ExclamationIcon,
+    GlobeAltIcon,
     InformationCircleIcon,
     LightningBoltIcon,
     RefreshIcon,
@@ -17,6 +18,7 @@ import {
     XIcon,
 } from '@heroicons/react/solid';
 import { autoAssignBedrockAllocation, syncAllPortsToConfigs } from '@/api/server/minecraft/portSync';
+import { getCustomDomains } from '@/api/server/minecraft/domains';
 import { useFlashKey } from '@/plugins/useFlash';
 
 interface Props {
@@ -33,6 +35,18 @@ const MinecraftPortHero = ({ uuid, allocations, onAllocationsUpdated }: Props) =
     const [autoAssigning, setAutoAssigning] = useState(false);
     const [guideModalOpen, setGuideModalOpen] = useState(false);
     const [activeGuideTab, setActiveGuideTab] = useState<'java' | 'bedrock' | 'console' | 'addons'>('bedrock');
+    const [primaryDomain, setPrimaryDomain] = useState<string | null>(null);
+
+    React.useEffect(() => {
+        getCustomDomains(uuid)
+            .then((list) => {
+                const primary = list.find((d) => d.isPrimary) || list[0];
+                if (primary) {
+                    setPrimaryDomain(primary.domain);
+                }
+            })
+            .catch(() => {});
+    }, [uuid]);
 
     // Detect Java Primary Allocation
     const javaAllocation =
@@ -130,6 +144,13 @@ const MinecraftPortHero = ({ uuid, allocations, onAllocationsUpdated }: Props) =
                     </div>
 
                     <div className={'flex flex-wrap items-center gap-2.5'}>
+                        <a
+                            href={`/server/${uuid.split('-')[0]}/minecraft/domain`}
+                            className={'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-cyan-950/60 hover:bg-cyan-900/60 text-cyan-300 border border-cyan-500/40 shadow-md transition'}
+                        >
+                            <GlobeAltIcon className={'w-4 h-4 text-cyan-400'} />
+                            Custom Domains
+                        </a>
                         <button
                             type={'button'}
                             onClick={() => setGuideModalOpen(true)}
@@ -150,6 +171,34 @@ const MinecraftPortHero = ({ uuid, allocations, onAllocationsUpdated }: Props) =
                         </button>
                     </div>
                 </div>
+
+                {primaryDomain && (
+                    <div className={'mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs'}>
+                        <div className={'flex items-center gap-2'}>
+                            <span className={'px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'}>
+                                Primary Custom Domain
+                            </span>
+                            <span className={'font-mono font-bold text-white text-sm'}>{primaryDomain}</span>
+                        </div>
+                        <button
+                            type={'button'}
+                            onClick={() => handleCopy(primaryDomain, 'heroPrimaryDom')}
+                            className={'flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-200 text-xs font-medium border border-cyan-500/30 transition'}
+                        >
+                            {copiedField === 'heroPrimaryDom' ? (
+                                <>
+                                    <CheckIcon className={'w-3.5 h-3.5 text-emerald-400'} />
+                                    <span className={'text-emerald-400'}>Copied</span>
+                                </>
+                            ) : (
+                                <>
+                                    <DuplicateIcon className={'w-3.5 h-3.5'} />
+                                    <span>Copy Custom Domain</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Dual Hero Cards: Java Edition & Bedrock Edition */}

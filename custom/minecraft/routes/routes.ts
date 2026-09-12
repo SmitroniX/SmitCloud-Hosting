@@ -22,6 +22,7 @@ import WorldManagerContainer from '@/components/server/minecraft/worlds/WorldMan
 import HealthMonitorContainer from '@/components/server/minecraft/health/HealthMonitorContainer';
 import DiscordIntegrationContainer from '@/components/server/minecraft/discord/DiscordIntegrationContainer';
 import DDoSProtectionContainer from '@/components/server/minecraft/ddos/DDoSProtectionContainer';
+import DomainManagerContainer from '@/components/server/minecraft/domains/DomainManagerContainer';
 
 // Each of the router files is already code split out appropriately — so
 // all of the items above will only be loaded in when that router is loaded.
@@ -184,6 +185,12 @@ export default {
             permission: 'file.*',
             name: 'DDoS & Security',
             component: DDoSProtectionContainer,
+        },
+        {
+            path: '/minecraft/domain',
+            permission: 'allocation.*',
+            name: 'Custom Domains',
+            component: DomainManagerContainer,
         },
         {
             path: '/settings',

@@ -622,6 +622,7 @@ apply_smitcloud_customizations() {
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/health
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/discord
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/ddos
+    mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/domains
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/network
     mkdir -p /var/www/pterodactyl/resources/scripts/api/server/minecraft
     mkdir -p /var/www/pterodactyl/resources/scripts/plugins
@@ -647,6 +648,8 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/minecraft/health/HealthMonitorContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/health/HealthMonitorContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/health/
         [[ -f "${CUSTOM_DIR}/minecraft/discord/DiscordIntegrationContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/discord/DiscordIntegrationContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/discord/
         [[ -f "${CUSTOM_DIR}/minecraft/ddos/DDoSProtectionContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/ddos/DDoSProtectionContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/ddos/
+        [[ -f "${CUSTOM_DIR}/minecraft/domains/DomainManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/domains/DomainManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/domains/
+        [[ -f "${CUSTOM_DIR}/minecraft/domains/DnsInstructionsModal.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/domains/DnsInstructionsModal.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/domains/
         [[ -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/
         [[ -f "${CUSTOM_DIR}/minecraft/players/PlayerProfileModal.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/players/PlayerProfileModal.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/
         [[ -f "${CUSTOM_DIR}/minecraft/plugins/PluginManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/plugins/PluginManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins/
@@ -659,6 +662,7 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/minecraft/api/health.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/health.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/api/discord.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/discord.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/api/ddos.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/ddos.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/domains.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/domains.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/api/portSync.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/portSync.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" /var/www/pterodactyl/resources/scripts/routers/routes.ts
     else
@@ -682,6 +686,8 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/health/HealthMonitorContainer.tsx "${REPO_RAW}/custom/minecraft/health/HealthMonitorContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/discord/DiscordIntegrationContainer.tsx "${REPO_RAW}/custom/minecraft/discord/DiscordIntegrationContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/ddos/DDoSProtectionContainer.tsx "${REPO_RAW}/custom/minecraft/ddos/DDoSProtectionContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/domains/DomainManagerContainer.tsx "${REPO_RAW}/custom/minecraft/domains/DomainManagerContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/domains/DnsInstructionsModal.tsx "${REPO_RAW}/custom/minecraft/domains/DnsInstructionsModal.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/PlayerManagerContainer.tsx "${REPO_RAW}/custom/minecraft/players/PlayerManagerContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/PlayerProfileModal.tsx "${REPO_RAW}/custom/minecraft/players/PlayerProfileModal.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins/PluginManagerContainer.tsx "${REPO_RAW}/custom/minecraft/plugins/PluginManagerContainer.tsx" || true
@@ -694,6 +700,7 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/health.ts "${REPO_RAW}/custom/minecraft/api/health.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/discord.ts "${REPO_RAW}/custom/minecraft/api/discord.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/ddos.ts "${REPO_RAW}/custom/minecraft/api/ddos.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/domains.ts "${REPO_RAW}/custom/minecraft/api/domains.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/portSync.ts "${REPO_RAW}/custom/minecraft/api/portSync.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/routes.ts "${REPO_RAW}/custom/minecraft/routes/routes.ts" || true
     fi
