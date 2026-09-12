@@ -199,6 +199,31 @@ For Minecraft game servers, the panel includes dedicated management tabs in the 
 - **Version & Loader Filtering**: Filter by Minecraft version (e.g. `1.20.4`, `1.21`) and server software (Paper, Spigot, Purpur, Velocity, BungeeCord).
 - **1-Click Installation**: Download plugin `.jar` files straight into the `/plugins` directory with zero manual FTP uploads.
 
+### 🔄 Software & Version Switcher (`/minecraft/version`)
+- **Multi-Core Support**: Switch between **Arclight** (Forge, NeoForge, and Fabric hybrid running plugins + mods simultaneously), **Purpur**, and **Paper**.
+- **1-Click Downloads**: Direct pulling from GitHub Releases and PaperMC v3 API with automatic `.jar` backup (`server.jar.bak`).
+- **Version Filtering**: Instant search across releases and game versions (1.21.x, 1.20.x, 1.19.x, 1.16.5, etc.).
+
+### 🌍 World & Map Manager (`/minecraft/worlds`)
+- **Active Level Overview**: Live visual status badge of currently active world folder.
+- **Multi-Dimension Awareness**: Detects and displays linked dimensions (🌲 Overworld, 🔥 Nether, 🌌 The End).
+- **Datapack Inspector**: View, enable, disable, and delete datapacks inside each world's `/datapacks` folder.
+- **World Management**: 1-click active world switching, new world generation with custom seed & generator type, URL import (.zip), and compressed backup (.tar.gz).
+
+### ⚡ Health, TPS & Spark Diagnostics (`/minecraft/health`)
+- **Live Performance Gauges**: Target TPS meter (20.0 TPS optimal) and MSPT latency budget indicator (<50ms).
+- **1-Click Spark Suite**: Instant triggers for `/spark healthreport`, `/spark tps`, 30s CPU profiler `/spark sampler`, GC cleanup `/spark gc`, and heap dump snapshots.
+- **Anti-Lag Tuning Advisor**: 1-click automatic tuning of view distance, simulation distance, network compression, and asynchronous chunk saving.
+
+### 📱 GeyserMC & Floodgate Bedrock Crossplay (`/minecraft/geyser`)
+- **Crossplay Suite**: 1-click installation of `Geyser-Spigot` and `floodgate-spigot` for seamless mobile (iOS/Android), console (Xbox/PlayStation/Switch), and Windows Bedrock edition connections.
+- **Auto Configuration**: Automatically maps UDP port `19132` / `25565`, sets `auth-type: floodgate`, and syncs Bedrock MOTD.
+
+### 🔔 Discord Webhooks & Public Status Widget (`/minecraft/discord`)
+- **Discord Alerts**: Real-time notifications for server online, server stopped, and server crash events.
+- **Test Webhook**: 1-click direct test embed dispatch to verify Discord webhook connectivity.
+- **Public Status Card**: Real-time live status badge generator with copyable Markdown and HTML iframe embed codes.
+
 ### 👤 Player Manager Section (`/minecraft/players`)
 - **Live Command Center**: Instantly **Kick**, **Ban**, **OP / De-OP**, or execute **Kill** and **Gamemode** commands on target players.
 - **Whitelist Management**: View whitelisted players with live Minecraft avatars, add/remove players, and toggle Whitelist ON/OFF.
@@ -209,6 +234,10 @@ For Minecraft game servers, the panel includes dedicated management tabs in the 
 - **Categorized Controls**: Properties organized into intuitive sections: General, World, Spawning, Player, Performance, and RCON.
 - **Interactive Form Elements**: Toggle switches for boolean options, dropdown menus for gamemodes/difficulty, and bounded number inputs for ports, limits, and view distances.
 - **Direct Sync**: Edits save directly to `server.properties` with validation and backup formatting.
+
+### 💻 Advanced Console with Quick Commands & Scroll Isolation
+- **Scroll Isolation**: Strict overscroll containment and touch-action handling prevent terminal scrolling from jumping the webpage up or down.
+- **Quick Command Bar**: 10 instant buttons directly above the input (`/tps`, `/spark healthreport`, Day, Night, Clear Weather, Survival, Creative, Save All, Reload, Players).
 
 ---
 

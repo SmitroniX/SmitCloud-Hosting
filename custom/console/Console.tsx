@@ -15,7 +15,7 @@ import { debounce } from 'debounce';
 import { usePersistedState } from '@/plugins/usePersistedState';
 import { SocketEvent, SocketRequest } from '@/components/server/events';
 import classNames from 'classnames';
-import { ChevronDoubleRightIcon, PaperAirplaneIcon, SearchIcon, TerminalIcon, TrashIcon } from '@heroicons/react/solid';
+import { ChevronDoubleRightIcon, LightningBoltIcon, PaperAirplaneIcon, SearchIcon, TerminalIcon, TrashIcon } from '@heroicons/react/solid';
 
 import 'xterm/css/xterm.css';
 import styles from './style.module.css';
@@ -383,6 +383,37 @@ export default () => {
                     <div id={styles.terminal} ref={ref} />
                 </div>
             </div>
+
+            {/* Quick Command Bar */}
+            {canSendCommands && (
+                <div className={'flex items-center gap-1.5 px-3 py-1.5 bg-[#080d19] border-t border-cyan-500/15 overflow-x-auto no-scrollbar text-xs select-none'}>
+                    <span className={'text-[10px] font-mono text-cyan-400/80 uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1 font-bold'}>
+                        <LightningBoltIcon className={'w-3 h-3 text-cyan-400'} /> Quick:
+                    </span>
+                    {[
+                        { label: '⚡ TPS', cmd: 'tps' },
+                        { label: '📊 Spark Health', cmd: 'spark healthreport' },
+                        { label: '☀️ Day', cmd: 'time set day' },
+                        { label: '🌙 Night', cmd: 'time set night' },
+                        { label: '🌧️ Clear Weather', cmd: 'weather clear' },
+                        { label: '⚔️ Survival', cmd: 'gamemode survival @a' },
+                        { label: '🎨 Creative', cmd: 'gamemode creative @p' },
+                        { label: '💾 Save All', cmd: 'save-all' },
+                        { label: '🔄 Reload', cmd: 'reload confirm' },
+                        { label: '👥 Players', cmd: 'list' },
+                    ].map((item) => (
+                        <button
+                            key={item.cmd}
+                            type={'button'}
+                            disabled={!instance || !connected}
+                            onClick={() => sendCommand(item.cmd)}
+                            className={'shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-cyan-500/20 text-gray-300 hover:text-cyan-300 border border-white/5 hover:border-cyan-500/30 text-[11px] font-mono transition-all duration-150 disabled:opacity-40 active:scale-95'}
+                        >
+                            {item.label}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             {/* Command Input Bar */}
             {canSendCommands && (

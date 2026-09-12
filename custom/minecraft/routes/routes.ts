@@ -17,6 +17,10 @@ import PluginManagerContainer from '@/components/server/minecraft/plugins/Plugin
 import PlayerManagerContainer from '@/components/server/minecraft/players/PlayerManagerContainer';
 import PropertiesEditorContainer from '@/components/server/minecraft/properties/PropertiesEditorContainer';
 import GeyserManagerContainer from '@/components/server/minecraft/geyser/GeyserManagerContainer';
+import VersionManagerContainer from '@/components/server/minecraft/versions/VersionManagerContainer';
+import WorldManagerContainer from '@/components/server/minecraft/worlds/WorldManagerContainer';
+import HealthMonitorContainer from '@/components/server/minecraft/health/HealthMonitorContainer';
+import DiscordIntegrationContainer from '@/components/server/minecraft/discord/DiscordIntegrationContainer';
 
 // Each of the router files is already code split out appropriately — so
 // all of the items above will only be loaded in when that router is loaded.
@@ -127,10 +131,34 @@ export default {
             component: StartupContainer,
         },
         {
+            path: '/minecraft/version',
+            permission: 'file.*',
+            name: 'Software & Version',
+            component: VersionManagerContainer,
+        },
+        {
             path: '/minecraft/plugins',
             permission: 'file.*',
             name: 'Plugin Manager',
             component: PluginManagerContainer,
+        },
+        {
+            path: '/minecraft/worlds',
+            permission: 'file.*',
+            name: 'Worlds & Maps',
+            component: WorldManagerContainer,
+        },
+        {
+            path: '/minecraft/health',
+            permission: null,
+            name: 'Server Health & TPS',
+            component: HealthMonitorContainer,
+        },
+        {
+            path: '/minecraft/geyser',
+            permission: 'file.*',
+            name: 'Bedrock Crossplay',
+            component: GeyserManagerContainer,
         },
         {
             path: '/minecraft/players',
@@ -145,10 +173,10 @@ export default {
             component: PropertiesEditorContainer,
         },
         {
-            path: '/minecraft/geyser',
+            path: '/minecraft/discord',
             permission: 'file.*',
-            name: 'Bedrock Crossplay',
-            component: GeyserManagerContainer,
+            name: 'Discord & Widget',
+            component: DiscordIntegrationContainer,
         },
         {
             path: '/settings',

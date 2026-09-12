@@ -612,7 +612,13 @@ apply_smitcloud_customizations() {
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/players
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins
+    mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/geyser
+    mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/versions
+    mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/worlds
+    mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/health
+    mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/discord
     mkdir -p /var/www/pterodactyl/resources/scripts/api/server/minecraft
+    mkdir -p /var/www/pterodactyl/resources/scripts/plugins
 
     if [[ -d "${CUSTOM_DIR}" ]]; then
         [[ -f "${CUSTOM_DIR}/branding/LoginFormContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/branding/LoginFormContainer.tsx" /var/www/pterodactyl/resources/scripts/components/auth/
@@ -624,13 +630,22 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/branding/nebula.css" ]] && cp -f "${CUSTOM_DIR}/branding/nebula.css" /var/www/pterodactyl/public/nebula.css
         [[ -f "${CUSTOM_DIR}/console/Console.tsx" ]] && cp -f "${CUSTOM_DIR}/console/Console.tsx" /var/www/pterodactyl/resources/scripts/components/server/console/
         [[ -f "${CUSTOM_DIR}/console/style.module.css" ]] && cp -f "${CUSTOM_DIR}/console/style.module.css" /var/www/pterodactyl/resources/scripts/components/server/console/
+        [[ -f "${CUSTOM_DIR}/plugins/XtermScrollDownHelperAddon.ts" ]] && cp -f "${CUSTOM_DIR}/plugins/XtermScrollDownHelperAddon.ts" /var/www/pterodactyl/resources/scripts/plugins/
         [[ -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/
         [[ -f "${CUSTOM_DIR}/minecraft/geyser/GeyserManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/geyser/GeyserManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/geyser/
+        [[ -f "${CUSTOM_DIR}/minecraft/versions/VersionManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/versions/VersionManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/versions/
+        [[ -f "${CUSTOM_DIR}/minecraft/worlds/WorldManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/worlds/WorldManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/worlds/
+        [[ -f "${CUSTOM_DIR}/minecraft/health/HealthMonitorContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/health/HealthMonitorContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/health/
+        [[ -f "${CUSTOM_DIR}/minecraft/discord/DiscordIntegrationContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/discord/DiscordIntegrationContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/discord/
         [[ -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/
         [[ -f "${CUSTOM_DIR}/minecraft/plugins/PluginManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/plugins/PluginManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins/
         [[ -f "${CUSTOM_DIR}/minecraft/api/players.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/players.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/api/plugins.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/plugins.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/api/geyser.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/geyser.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/versions.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/versions.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/worlds.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/worlds.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/health.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/health.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/discord.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/discord.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" /var/www/pterodactyl/resources/scripts/routers/routes.ts
     else
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/auth/LoginFormContainer.tsx "${REPO_RAW}/custom/branding/LoginFormContainer.tsx" || true
@@ -642,13 +657,22 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/public/nebula.css "${REPO_RAW}/custom/branding/nebula.css" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/console/Console.tsx "${REPO_RAW}/custom/console/Console.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/console/style.module.css "${REPO_RAW}/custom/console/style.module.css" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/plugins/XtermScrollDownHelperAddon.ts "${REPO_RAW}/custom/plugins/XtermScrollDownHelperAddon.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/PropertiesEditorContainer.tsx "${REPO_RAW}/custom/minecraft/properties/PropertiesEditorContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/geyser/GeyserManagerContainer.tsx "${REPO_RAW}/custom/minecraft/geyser/GeyserManagerContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/versions/VersionManagerContainer.tsx "${REPO_RAW}/custom/minecraft/versions/VersionManagerContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/worlds/WorldManagerContainer.tsx "${REPO_RAW}/custom/minecraft/worlds/WorldManagerContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/health/HealthMonitorContainer.tsx "${REPO_RAW}/custom/minecraft/health/HealthMonitorContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/discord/DiscordIntegrationContainer.tsx "${REPO_RAW}/custom/minecraft/discord/DiscordIntegrationContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/PlayerManagerContainer.tsx "${REPO_RAW}/custom/minecraft/players/PlayerManagerContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins/PluginManagerContainer.tsx "${REPO_RAW}/custom/minecraft/plugins/PluginManagerContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/players.ts "${REPO_RAW}/custom/minecraft/api/players.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/plugins.ts "${REPO_RAW}/custom/minecraft/api/plugins.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/geyser.ts "${REPO_RAW}/custom/minecraft/api/geyser.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/versions.ts "${REPO_RAW}/custom/minecraft/api/versions.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/worlds.ts "${REPO_RAW}/custom/minecraft/api/worlds.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/health.ts "${REPO_RAW}/custom/minecraft/api/health.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/discord.ts "${REPO_RAW}/custom/minecraft/api/discord.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/routes.ts "${REPO_RAW}/custom/minecraft/routes/routes.ts" || true
     fi
 
