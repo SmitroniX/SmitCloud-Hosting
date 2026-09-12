@@ -25,6 +25,46 @@ export interface OnlinePlugin {
     sourceUrl?: string;
 }
 
+export interface PluginVersionFile {
+    filename: string;
+    url: string;
+    size: number;
+    primary: boolean;
+}
+
+export interface PluginVersion {
+    id: string;
+    name: string;
+    versionNumber: string;
+    gameVersions: string[];
+    loaders: string[];
+    versionType: 'release' | 'beta' | 'alpha';
+    datePublished: string;
+    downloads: number;
+    changelog?: string;
+    files: PluginVersionFile[];
+}
+
+export interface PluginDetails {
+    id: string;
+    title: string;
+    description: string;
+    body?: string;
+    author?: string;
+    iconUrl?: string;
+    downloads: number;
+    followers?: number;
+    categories: string[];
+    loaders: string[];
+    gameVersions: string[];
+    sourceUrl?: string;
+    issuesUrl?: string;
+    wikiUrl?: string;
+    discordUrl?: string;
+    donationUrls?: { id: string; platform: string; url: string }[];
+    license?: string;
+}
+
 export const fetchInstalledPlugins = async (uuid: string): Promise<InstalledPlugin[]> => {
     try {
         const files: FileObject[] = await loadDirectory(uuid, '/plugins');
@@ -96,18 +136,76 @@ export const searchModrinth = async (query = ''): Promise<OnlinePlugin[]> => {
     }
 };
 
+export const getPluginDetails = async (projectId: string): Promise<PluginDetails | null> => {
+    try {
+        const res = await axios.get(`https://api.modrinth.com/v2/project/${projectId}`, { timeout: 8000 });
+        const data = res.data;
+        if (!data) return null;
+
+        return {
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            body: data.body,
+            iconUrl: data.icon_url,
+            downloads: data.downloads || 0,
+            followers: data.followers || 0,
+            categories: data.categories || [],
+            loaders: data.loaders || [],
+            gameVersions: data.game_versions || [],
+            sourceUrl: data.source_url,
+            issuesUrl: data.issues_url,
+            wikiUrl: data.wiki_url,
+            discordUrl: data.discord_url,
+            donationUrls: data.donation_urls || [],
+            license: data.license?.name,
+        };
+    } catch (e) {
+        console.error('Error getting plugin details:', e);
+        return null;
+    }
+};
+
+export const getPluginVersions = async (projectId: string): Promise<PluginVersion[]> => {
+    try {
+        const res = await axios.get(`https://api.modrinth.com/v2/project/${projectId}/version`, { timeout: 8000 });
+        const versions = res.data || [];
+
+        return versions.map((v: any) => ({
+            id: v.id,
+            name: v.name,
+            versionNumber: v.version_number,
+            gameVersions: v.game_versions || [],
+            loaders: v.loaders || [],
+            versionType: (v.version_type || 'release') as 'release' | 'beta' | 'alpha',
+            datePublished: v.date_published,
+            downloads: v.downloads || 0,
+            changelog: v.changelog,
+            files: (v.files || []).map((f: any) => ({
+                filename: f.filename,
+                url: f.url,
+                size: f.size || 0,
+                primary: !!f.primary,
+            })),
+        }));
+    } catch (e) {
+        console.error('Error getting plugin versions:', e);
+        return [];
+    }
+};
+
 export const getModrinthDownload = async (
     projectId: string
 ): Promise<{ url: string; filename: string } | null> => {
     try {
-        const res = await axios.get(`https://api.modrinth.com/v2/project/${projectId}/version`, { timeout: 8000 });
-        const versions = res.data || [];
+        const versions = await getPluginVersions(projectId);
         if (!versions.length) return null;
 
-        // Take primary file from latest version
         for (const version of versions) {
             const files = version.files || [];
-            const jarFile = files.find((f: any) => f.primary && f.filename?.endsWith('.jar')) || files.find((f: any) => f.filename?.endsWith('.jar'));
+            const jarFile =
+                files.find((f) => f.primary && f.filename?.endsWith('.jar')) ||
+                files.find((f) => f.filename?.endsWith('.jar'));
             if (jarFile) {
                 return {
                     url: jarFile.url,
@@ -117,7 +215,7 @@ export const getModrinthDownload = async (
         }
         return null;
     } catch (e) {
-        console.error('Error getting Modrinth version:', e);
+        console.error('Error getting Modrinth download:', e);
         return null;
     }
 };

@@ -13,18 +13,22 @@ import tw from 'twin.macro';
 import {
     InstalledPlugin,
     OnlinePlugin,
+    PluginDetails,
+    PluginVersion,
     fetchInstalledPlugins,
     togglePlugin,
     deletePlugin,
     createPluginsFolder,
     pullPlugin,
     searchModrinth,
-    getModrinthDownload,
+    getPluginDetails,
+    getPluginVersions,
     uploadPluginFile,
 } from '@/api/server/minecraft/plugins';
 import { sendServerCommand } from '@/api/server/minecraft/players';
 
 type Tab = 'installed' | 'search' | 'popular';
+type ModalTab = 'overview' | 'versions';
 
 interface PopularPluginDef {
     name: string;
@@ -126,6 +130,15 @@ export default () => {
     const [searchResults, setSearchResults] = useState<OnlinePlugin[]>([]);
     const [hasSearched, setHasSearched] = useState(false);
 
+    // Modal state for Plugin Preview & Version Selector
+    const [previewPluginId, setPreviewPluginId] = useState<string | null>(null);
+    const [previewDetails, setPreviewDetails] = useState<PluginDetails | null>(null);
+    const [previewVersions, setPreviewVersions] = useState<PluginVersion[]>([]);
+    const [modalTab, setModalTab] = useState<ModalTab>('overview');
+    const [modalLoading, setModalLoading] = useState(false);
+    const [versionFilter, setVersionFilter] = useState('');
+    const [expandedChangelogs, setExpandedChangelogs] = useState<{ [id: string]: boolean }>({});
+
     useEffect(() => {
         loadInstalled();
     }, []);
@@ -209,23 +222,63 @@ export default () => {
             .finally(() => setLoading(false));
     };
 
-    const handleInstallOnline = (plugin: OnlinePlugin) => {
-        setActionLoading(plugin.id);
+    // Open Plugin Preview & Version Selector
+    const openPluginPreview = (projectId: string, initialTab: ModalTab = 'overview') => {
+        setPreviewPluginId(projectId);
+        setModalTab(initialTab);
+        setModalLoading(true);
+        setVersionFilter('');
+        setExpandedChangelogs({});
+
+        Promise.all([getPluginDetails(projectId), getPluginVersions(projectId)])
+            .then(([details, versions]) => {
+                setPreviewDetails(details);
+                setPreviewVersions(versions);
+            })
+            .catch((e) => {
+                console.error(e);
+                addFlash({
+                    key: 'plugins',
+                    type: 'error',
+                    title: 'Preview Failed',
+                    message: 'Could not load plugin details from repository.',
+                });
+                setPreviewPluginId(null);
+            })
+            .finally(() => setModalLoading(false));
+    };
+
+    const closePreviewModal = () => {
+        setPreviewPluginId(null);
+        setPreviewDetails(null);
+        setPreviewVersions([]);
+    };
+
+    const handleInstallExactVersion = (ver: PluginVersion) => {
+        const jarFile =
+            ver.files.find((f) => f.primary && f.filename.endsWith('.jar')) ||
+            ver.files.find((f) => f.filename.endsWith('.jar'));
+
+        if (!jarFile) {
+            addFlash({
+                key: 'plugins',
+                type: 'error',
+                title: 'No Jar Found',
+                message: `Version ${ver.versionNumber} does not contain a valid .jar file.`,
+            });
+            return;
+        }
+
+        setActionLoading(ver.id);
         clearFlashes('plugins');
 
-        getModrinthDownload(plugin.id)
-            .then((dl) => {
-                if (!dl) {
-                    throw new Error(`Could not find a valid .jar file for ${plugin.title}.`);
-                }
-                return pullPlugin(uuid, dl.url, dl.filename).then(() => dl.filename);
-            })
-            .then((filename) => {
+        pullPlugin(uuid, jarFile.url, jarFile.filename)
+            .then(() => {
                 addFlash({
                     key: 'plugins',
                     type: 'success',
-                    title: 'Download Started',
-                    message: `Installing ${plugin.title} (${filename}). It will appear in your plugins directory in a few moments!`,
+                    title: 'Plugin Version Installing',
+                    message: `Downloading ${jarFile.filename} into /plugins. Restart your server when finished.`,
                 });
                 setTimeout(() => loadInstalled(), 2500);
             })
@@ -233,30 +286,26 @@ export default () => {
             .finally(() => setActionLoading(null));
     };
 
-    const handleInstallPopular = (pop: PopularPluginDef) => {
-        setActionLoading(pop.name);
+    const handleInstallLatestFromCard = (projectId: string, pluginTitle: string) => {
+        setActionLoading(projectId);
         clearFlashes('plugins');
 
-        searchModrinth(pop.searchQuery)
-            .then((hits) => {
-                const bestMatch = hits[0];
-                if (!bestMatch) {
-                    throw new Error(`Plugin ${pop.name} was not found in the repository.`);
-                }
-                return getModrinthDownload(bestMatch.id);
-            })
-            .then((dl) => {
-                if (!dl) {
-                    throw new Error(`No .jar download found for ${pop.name}.`);
-                }
-                return pullPlugin(uuid, dl.url, dl.filename).then(() => dl.filename);
+        getPluginVersions(projectId)
+            .then((versions) => {
+                const latest = versions[0];
+                if (!latest) throw new Error(`No versions found for ${pluginTitle}.`);
+                const jar =
+                    latest.files.find((f) => f.primary && f.filename.endsWith('.jar')) ||
+                    latest.files.find((f) => f.filename.endsWith('.jar'));
+                if (!jar) throw new Error(`No .jar file found for latest version of ${pluginTitle}.`);
+                return pullPlugin(uuid, jar.url, jar.filename).then(() => jar.filename);
             })
             .then((filename) => {
                 addFlash({
                     key: 'plugins',
                     type: 'success',
-                    title: 'Plugin Installing',
-                    message: `Downloading ${pop.name} (${filename}). Restart your server after download completes to load it!`,
+                    title: 'Download Started',
+                    message: `Installing ${pluginTitle} (${filename}). Restart server to load.`,
                 });
                 setTimeout(() => loadInstalled(), 2500);
             })
@@ -322,9 +371,23 @@ export default () => {
         });
     };
 
+    const isVersionInstalled = (filename: string): boolean => {
+        return installedPlugins.some((p) => p.filename === filename || p.filename === `${filename}.disabled`);
+    };
+
     const filteredInstalled = installedPlugins.filter((p) =>
         p.name.toLowerCase().includes(installedFilter.toLowerCase())
     );
+
+    const filteredVersions = previewVersions.filter((v) => {
+        if (!versionFilter.trim()) return true;
+        const q = versionFilter.toLowerCase();
+        return (
+            v.versionNumber.toLowerCase().includes(q) ||
+            v.name.toLowerCase().includes(q) ||
+            v.gameVersions.some((gv) => gv.toLowerCase().includes(q))
+        );
+    });
 
     const activeCount = installedPlugins.filter((p) => p.isEnabled).length;
     const disabledCount = installedPlugins.filter((p) => !p.isEnabled).length;
@@ -346,7 +409,7 @@ export default () => {
                     <div>
                         <h2 css={tw`text-xl font-bold text-white tracking-tight`}>Minecraft Plugin Manager</h2>
                         <p css={tw`text-xs text-neutral-400 mt-0.5`}>
-                            Discover, install, and manage Bukkit/Spigot/Paper plugins for your server.
+                            Discover, preview, select specific versions, and install plugins for your server.
                         </p>
                     </div>
                 </div>
@@ -598,18 +661,27 @@ export default () => {
                                             </p>
                                         </div>
 
-                                        <div css={tw`flex items-center justify-between pt-3 border-t border-neutral-700/60 mt-2`}>
+                                        <div css={tw`flex items-center justify-between pt-3 border-t border-neutral-700/60 mt-2 gap-2`}>
                                             <span css={tw`text-xs text-neutral-400`}>
                                                 {plugin.downloads.toLocaleString()} downloads
                                             </span>
-                                            <Button
-                                                size={'small'}
-                                                disabled={isInstalling}
-                                                isSecondary={installed}
-                                                onClick={() => handleInstallOnline(plugin)}
-                                            >
-                                                {isInstalling ? 'Installing...' : installed ? 'Reinstall' : 'Install Plugin'}
-                                            </Button>
+                                            <div css={tw`flex items-center gap-2`}>
+                                                <Button
+                                                    size={'small'}
+                                                    isSecondary
+                                                    onClick={() => openPluginPreview(plugin.id, 'overview')}
+                                                >
+                                                    Preview & Versions
+                                                </Button>
+                                                <Button
+                                                    size={'small'}
+                                                    disabled={isInstalling}
+                                                    isSecondary={installed}
+                                                    onClick={() => handleInstallLatestFromCard(plugin.id, plugin.title)}
+                                                >
+                                                    {isInstalling ? 'Installing...' : installed ? 'Reinstall' : 'Install Latest'}
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -623,7 +695,7 @@ export default () => {
             {activeTab === 'popular' && (
                 <div>
                     <p css={tw`text-sm text-neutral-400 mb-6`}>
-                        Curated collection of the most essential, widely-used plugins for Minecraft servers. Click install to automatically pull the latest release into your <code>/plugins</code> directory.
+                        Curated collection of the most essential, widely-used plugins for Minecraft servers. Click <strong>Preview & Versions</strong> to inspect supported versions, or install the latest release directly.
                     </p>
 
                     <div css={tw`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}>
@@ -648,26 +720,385 @@ export default () => {
                                         </p>
                                     </div>
 
-                                    <div css={tw`pt-3 border-t border-neutral-700 flex justify-between items-center`}>
-                                        {installed ? (
-                                            <span css={tw`text-xs font-semibold text-green-400 flex items-center gap-1`}>
-                                                <span>✓</span> Installed
-                                            </span>
-                                        ) : (
-                                            <span css={tw`text-xs text-neutral-400`}>Ready to install</span>
-                                        )}
+                                    <div css={tw`pt-3 border-t border-neutral-700 flex justify-between items-center gap-2`}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                searchModrinth(pop.searchQuery).then((hits) => {
+                                                    if (hits[0]) {
+                                                        openPluginPreview(hits[0].id, 'overview');
+                                                    } else {
+                                                        addFlash({
+                                                            key: 'plugins',
+                                                            type: 'error',
+                                                            title: 'Error',
+                                                            message: `Could not find preview for ${pop.name}.`,
+                                                        });
+                                                    }
+                                                });
+                                            }}
+                                            css={tw`text-xs text-cyan-400 hover:text-cyan-300 font-semibold underline`}
+                                        >
+                                            Versions & Preview
+                                        </button>
                                         <Button
                                             size={'small'}
                                             isSecondary={installed}
                                             disabled={isInstalling}
-                                            onClick={() => handleInstallPopular(pop)}
+                                            onClick={() => {
+                                                setActionLoading(pop.name);
+                                                searchModrinth(pop.searchQuery)
+                                                    .then((hits) => {
+                                                        if (!hits[0]) throw new Error(`Not found: ${pop.name}`);
+                                                        return handleInstallLatestFromCard(hits[0].id, pop.name);
+                                                    })
+                                                    .catch((e) => {
+                                                        clearAndAddHttpError({ key: 'plugins', error: e });
+                                                        setActionLoading(null);
+                                                    });
+                                            }}
                                         >
-                                            {isInstalling ? 'Installing...' : installed ? 'Update / Reinstall' : 'Install'}
+                                            {isInstalling ? 'Installing...' : installed ? 'Reinstall' : 'Install'}
                                         </Button>
                                     </div>
                                 </div>
                             );
                         })}
+                    </div>
+                </div>
+            )}
+
+            {/* Plugin Preview & Version Selector Modal */}
+            {previewPluginId && (
+                <div css={tw`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-80 backdrop-blur-sm overflow-y-auto`}>
+                    <div css={tw`relative w-full max-w-4xl bg-neutral-900 border border-cyan-500 border-opacity-40 rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden my-auto`}>
+                        {/* Modal Header */}
+                        <div css={tw`p-6 bg-neutral-800 border-b border-neutral-700 flex items-start justify-between gap-4`}>
+                            <div css={tw`flex items-center gap-4`}>
+                                {previewDetails?.iconUrl ? (
+                                    <img
+                                        src={previewDetails.iconUrl}
+                                        alt={previewDetails.title}
+                                        css={tw`w-14 h-14 rounded-xl object-contain bg-neutral-900 p-1.5 border border-neutral-700`}
+                                    />
+                                ) : (
+                                    <div css={tw`w-14 h-14 rounded-xl bg-cyan-600 bg-opacity-20 border border-cyan-500 border-opacity-30 flex items-center justify-center text-cyan-400 font-bold text-lg`}>
+                                        PL
+                                    </div>
+                                )}
+                                <div>
+                                    <h2 css={tw`text-2xl font-bold text-white tracking-tight`}>
+                                        {previewDetails?.title || 'Plugin Preview'}
+                                    </h2>
+                                    <div css={tw`flex flex-wrap items-center gap-2 mt-1`}>
+                                        {previewDetails?.license && (
+                                            <span css={tw`text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-neutral-700 text-neutral-300`}>
+                                                {previewDetails.license}
+                                            </span>
+                                        )}
+                                        {previewDetails?.downloads !== undefined && (
+                                            <span css={tw`text-xs text-neutral-400`}>
+                                                {previewDetails.downloads.toLocaleString()} total downloads
+                                            </span>
+                                        )}
+                                        {isPluginInstalled(previewDetails?.title || '') && (
+                                            <span css={tw`text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-green-500 bg-opacity-20 text-green-400 border border-green-500 border-opacity-30`}>
+                                                Currently Installed
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={closePreviewModal}
+                                css={tw`p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-700 transition-colors text-lg`}
+                            >
+                                &times;
+                            </button>
+                        </div>
+
+                        {/* Modal Navigation Tabs */}
+                        <div css={tw`flex items-center justify-between px-6 py-3 bg-neutral-800 border-b border-neutral-700`}>
+                            <div css={tw`flex gap-2`}>
+                                <button
+                                    type="button"
+                                    onClick={() => setModalTab('overview')}
+                                    css={[
+                                        tw`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors`,
+                                        modalTab === 'overview'
+                                            ? tw`bg-cyan-600 text-white`
+                                            : tw`bg-neutral-800 text-neutral-400 hover:text-white`,
+                                    ]}
+                                >
+                                    Overview & Details
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setModalTab('versions')}
+                                    css={[
+                                        tw`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors`,
+                                        modalTab === 'versions'
+                                            ? tw`bg-cyan-600 text-white`
+                                            : tw`bg-neutral-800 text-neutral-400 hover:text-white`,
+                                    ]}
+                                >
+                                    Version Selector ({previewVersions.length})
+                                </button>
+                            </div>
+
+                            {/* External resource links */}
+                            <div css={tw`hidden sm:flex items-center gap-3 text-xs text-neutral-400`}>
+                                {previewDetails?.sourceUrl && (
+                                    <a
+                                        href={previewDetails.sourceUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        css={tw`hover:text-cyan-400 transition-colors`}
+                                    >
+                                        Source Code &rarr;
+                                    </a>
+                                )}
+                                {previewDetails?.wikiUrl && (
+                                    <a
+                                        href={previewDetails.wikiUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        css={tw`hover:text-cyan-400 transition-colors`}
+                                    >
+                                        Documentation &rarr;
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div css={tw`p-6 overflow-y-auto flex-1`}>
+                            {modalLoading ? (
+                                <div css={tw`py-16`}>
+                                    <Spinner size={'large'} centered />
+                                </div>
+                            ) : modalTab === 'overview' ? (
+                                <div css={tw`space-y-6`}>
+                                    <div>
+                                        <h3 css={tw`text-sm uppercase font-bold text-cyan-400 tracking-wider mb-2`}>
+                                            Description
+                                        </h3>
+                                        <p css={tw`text-sm text-neutral-200 leading-relaxed bg-neutral-800 p-4 rounded-xl border border-neutral-700`}>
+                                            {previewDetails?.description}
+                                        </p>
+                                    </div>
+
+                                    {/* Compatible Loaders & Categories */}
+                                    <div css={tw`grid grid-cols-1 sm:grid-cols-2 gap-4`}>
+                                        <div css={tw`bg-neutral-800 p-4 rounded-xl border border-neutral-700`}>
+                                            <h4 css={tw`text-xs uppercase font-bold text-neutral-400 tracking-wider mb-2`}>
+                                                Server Loaders
+                                            </h4>
+                                            <div css={tw`flex flex-wrap gap-1.5`}>
+                                                {previewDetails?.loaders && previewDetails.loaders.length > 0 ? (
+                                                    previewDetails.loaders.map((l) => (
+                                                        <span
+                                                            key={l}
+                                                            css={tw`text-xs font-semibold px-2.5 py-1 rounded-md bg-neutral-900 border border-neutral-700 text-neutral-200 capitalize`}
+                                                        >
+                                                            {l}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span css={tw`text-xs text-neutral-500`}>Paper, Spigot, Bukkit</span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div css={tw`bg-neutral-800 p-4 rounded-xl border border-neutral-700`}>
+                                            <h4 css={tw`text-xs uppercase font-bold text-neutral-400 tracking-wider mb-2`}>
+                                                Plugin Categories
+                                            </h4>
+                                            <div css={tw`flex flex-wrap gap-1.5`}>
+                                                {previewDetails?.categories && previewDetails.categories.length > 0 ? (
+                                                    previewDetails.categories.map((c) => (
+                                                        <span
+                                                            key={c}
+                                                            css={tw`text-xs font-semibold px-2.5 py-1 rounded-md bg-cyan-600 bg-opacity-10 border border-cyan-500 border-opacity-20 text-cyan-400 capitalize`}
+                                                        >
+                                                            {c}
+                                                        </span>
+                                                    ))
+                                                ) : (
+                                                    <span css={tw`text-xs text-neutral-500`}>General</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Supported Minecraft Versions */}
+                                    {previewDetails?.gameVersions && previewDetails.gameVersions.length > 0 && (
+                                        <div>
+                                            <h4 css={tw`text-xs uppercase font-bold text-neutral-400 tracking-wider mb-2`}>
+                                                Supported Minecraft Versions ({previewDetails.gameVersions.length})
+                                            </h4>
+                                            <div css={tw`flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-3 bg-neutral-800 rounded-xl border border-neutral-700`}>
+                                                {previewDetails.gameVersions.map((gv) => (
+                                                    <span
+                                                        key={gv}
+                                                        css={tw`text-[11px] font-mono font-medium px-2 py-0.5 rounded bg-neutral-900 text-neutral-300 border border-neutral-700`}
+                                                    >
+                                                        {gv}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Action button */}
+                                    <div css={tw`pt-4 border-t border-neutral-800 flex justify-between items-center`}>
+                                        <span css={tw`text-xs text-neutral-400`}>
+                                            Want a specific build? Switch to the <strong>Version Selector</strong> tab above.
+                                        </span>
+                                        <Button
+                                            onClick={() => setModalTab('versions')}
+                                        >
+                                            Select & Install Version &rarr;
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* Version Selector Tab */
+                                <div>
+                                    <div css={tw`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4`}>
+                                        <div css={tw`w-full sm:w-80`}>
+                                            <Input
+                                                placeholder="Filter versions (e.g. 1.20, 2.22, release)..."
+                                                value={versionFilter}
+                                                onChange={(e) => setVersionFilter(e.target.value)}
+                                            />
+                                        </div>
+                                        <p css={tw`text-xs text-neutral-400`}>
+                                            Showing {filteredVersions.length} of {previewVersions.length} builds
+                                        </p>
+                                    </div>
+
+                                    {filteredVersions.length === 0 ? (
+                                        <div css={tw`text-center py-10 text-neutral-400`}>
+                                            No releases match the filter &ldquo;{versionFilter}&rdquo;.
+                                        </div>
+                                    ) : (
+                                        <div css={tw`space-y-3`}>
+                                            {filteredVersions.map((v) => {
+                                                const jarFile =
+                                                    v.files.find((f) => f.primary && f.filename.endsWith('.jar')) ||
+                                                    v.files.find((f) => f.filename.endsWith('.jar'));
+                                                const isInstalled = jarFile ? isVersionInstalled(jarFile.filename) : false;
+                                                const isInstalling = actionLoading === v.id;
+                                                const isExpanded = !!expandedChangelogs[v.id];
+
+                                                return (
+                                                    <div
+                                                        key={v.id}
+                                                        css={tw`bg-neutral-800 border border-neutral-700 rounded-xl p-4 hover:border-neutral-500 transition-all duration-150`}
+                                                    >
+                                                        <div css={tw`flex flex-col md:flex-row md:items-center justify-between gap-3`}>
+                                                            <div css={tw`min-w-0`}>
+                                                                <div css={tw`flex items-center gap-2 flex-wrap`}>
+                                                                    <span css={tw`text-base font-bold text-white`}>
+                                                                        {v.versionNumber}
+                                                                    </span>
+                                                                    <span css={[
+                                                                        tw`text-[10px] uppercase font-bold px-2 py-0.5 rounded`,
+                                                                        v.versionType === 'release'
+                                                                            ? tw`bg-green-500 bg-opacity-20 text-green-400 border border-green-500 border-opacity-30`
+                                                                            : v.versionType === 'beta'
+                                                                            ? tw`bg-yellow-500 bg-opacity-20 text-yellow-400 border border-yellow-500 border-opacity-30`
+                                                                            : tw`bg-red-500 bg-opacity-20 text-red-400 border border-red-500 border-opacity-30`,
+                                                                    ]}>
+                                                                        {v.versionType}
+                                                                    </span>
+                                                                    {isInstalled && (
+                                                                        <span css={tw`text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-cyan-600 bg-opacity-20 text-cyan-400 border border-cyan-500 border-opacity-30`}>
+                                                                            Installed
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+
+                                                                <p css={tw`text-xs text-neutral-400 mt-1 truncate`}>
+                                                                    {v.name}
+                                                                </p>
+
+                                                                {/* Game Versions Preview */}
+                                                                <div css={tw`flex items-center gap-1.5 flex-wrap mt-2`}>
+                                                                    <span css={tw`text-[11px] text-neutral-400 font-medium`}>MC:</span>
+                                                                    {v.gameVersions.slice(0, 5).map((gv) => (
+                                                                        <span
+                                                                            key={gv}
+                                                                            css={tw`text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-900 text-neutral-300 border border-neutral-700`}
+                                                                        >
+                                                                            {gv}
+                                                                        </span>
+                                                                    ))}
+                                                                    {v.gameVersions.length > 5 && (
+                                                                        <span css={tw`text-[10px] text-neutral-400 font-medium`}>
+                                                                            +{v.gameVersions.length - 5} more
+                                                                        </span>
+                                                                    )}
+                                                                    {jarFile && (
+                                                                        <span css={tw`text-[11px] text-neutral-400 ml-2`}>
+                                                                            &bull; {bytesToString(jarFile.size)}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <div css={tw`flex items-center gap-2 self-end md:self-auto`}>
+                                                                {v.changelog && (
+                                                                    <Button
+                                                                        size={'small'}
+                                                                        isSecondary
+                                                                        onClick={() =>
+                                                                            setExpandedChangelogs((prev) => ({
+                                                                                ...prev,
+                                                                                [v.id]: !prev[v.id],
+                                                                            }))
+                                                                        }
+                                                                    >
+                                                                        {isExpanded ? 'Hide Notes' : 'Changelog'}
+                                                                    </Button>
+                                                                )}
+                                                                <Button
+                                                                    size={'small'}
+                                                                    disabled={isInstalling || !jarFile}
+                                                                    isSecondary={isInstalled}
+                                                                    onClick={() => handleInstallExactVersion(v)}
+                                                                >
+                                                                    {isInstalling
+                                                                        ? 'Installing...'
+                                                                        : isInstalled
+                                                                        ? 'Reinstall'
+                                                                        : 'Install This Version'}
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Expanded Changelog */}
+                                                        {isExpanded && v.changelog && (
+                                                            <div css={tw`mt-3 pt-3 border-t border-neutral-700`}>
+                                                                <h5 css={tw`text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1`}>
+                                                                    Changelog
+                                                                </h5>
+                                                                <div css={tw`text-xs text-neutral-300 bg-neutral-900 p-3 rounded-lg border border-neutral-800 font-mono whitespace-pre-wrap max-h-48 overflow-y-auto`}>
+                                                                    {v.changelog}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
