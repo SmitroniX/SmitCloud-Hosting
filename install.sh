@@ -622,6 +622,8 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/branding/PageContentBlock.tsx" ]] && cp -f "${CUSTOM_DIR}/branding/PageContentBlock.tsx" /var/www/pterodactyl/resources/scripts/components/elements/
         [[ -f "${CUSTOM_DIR}/branding/wrapper.blade.php" ]] && cp -f "${CUSTOM_DIR}/branding/wrapper.blade.php" /var/www/pterodactyl/resources/views/templates/
         [[ -f "${CUSTOM_DIR}/branding/nebula.css" ]] && cp -f "${CUSTOM_DIR}/branding/nebula.css" /var/www/pterodactyl/public/nebula.css
+        [[ -f "${CUSTOM_DIR}/console/Console.tsx" ]] && cp -f "${CUSTOM_DIR}/console/Console.tsx" /var/www/pterodactyl/resources/scripts/components/server/console/
+        [[ -f "${CUSTOM_DIR}/console/style.module.css" ]] && cp -f "${CUSTOM_DIR}/console/style.module.css" /var/www/pterodactyl/resources/scripts/components/server/console/
         [[ -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/
         [[ -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/
         [[ -f "${CUSTOM_DIR}/minecraft/plugins/PluginManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/plugins/PluginManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins/
@@ -636,6 +638,8 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/elements/PageContentBlock.tsx "${REPO_RAW}/custom/branding/PageContentBlock.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/views/templates/wrapper.blade.php "${REPO_RAW}/custom/branding/wrapper.blade.php" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/public/nebula.css "${REPO_RAW}/custom/branding/nebula.css" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/console/Console.tsx "${REPO_RAW}/custom/console/Console.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/console/style.module.css "${REPO_RAW}/custom/console/style.module.css" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/PropertiesEditorContainer.tsx "${REPO_RAW}/custom/minecraft/properties/PropertiesEditorContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/PlayerManagerContainer.tsx "${REPO_RAW}/custom/minecraft/players/PlayerManagerContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/plugins/PluginManagerContainer.tsx "${REPO_RAW}/custom/minecraft/plugins/PluginManagerContainer.tsx" || true

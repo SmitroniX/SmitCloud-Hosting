@@ -1,0 +1,64 @@
+.stat_block {
+    @apply flex items-center rounded shadow-lg relative;
+    @apply col-span-3 md:col-span-2 lg:col-span-6;
+    @apply px-3 py-2 md:p-3 lg:p-4;
+
+    & > .status_bar {
+        @apply w-1 h-full absolute left-0 top-0 rounded-l sm:hidden;
+    }
+
+    & > .icon {
+        @apply hidden flex-shrink-0 items-center justify-center rounded-lg shadow-md w-12 h-12;
+        @apply transition-colors duration-500;
+        @apply sm:flex sm:mr-4;
+
+        & > svg {
+            @apply w-6 h-6 m-auto;
+        }
+    }
+}
+
+.terminal {
+    @apply flex flex-col w-full rounded-2xl overflow-hidden shadow-2xl;
+    background: #05070d;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    box-shadow: 0 10px 35px -10px rgba(0, 0, 0, 0.8), 0 0 25px -5px rgba(56, 189, 248, 0.12);
+
+    & .overflows_container {
+        @apply w-full;
+    }
+
+    & > .container {
+        @apply p-3 sm:p-4 min-h-[18rem] sm:min-h-[24rem] flex-1 font-mono text-sm;
+        background: #05070d;
+
+        & #terminal {
+            @apply h-full;
+
+            &::-webkit-scrollbar-track {
+                @apply w-2;
+                background: #05070d;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                @apply bg-cyan-950/60 rounded;
+                border: 1px solid rgba(56, 189, 248, 0.2);
+            }
+        }
+    }
+
+    & .command_icon {
+        @apply flex items-center top-0 left-0 absolute z-10 select-none h-full px-3 transition-colors duration-100;
+    }
+
+    & .command_input {
+        @apply w-full bg-transparent text-gray-100 font-mono text-sm sm:text-base;
+        @apply pl-10 sm:pl-11 pr-12 py-3 rounded-b-2xl;
+        @apply focus:ring-0 outline-none focus-visible:outline-none border-0;
+        @apply placeholder-gray-500 transition-colors duration-150;
+    }
+}
+
+.chart_container {
+    @apply bg-gray-600 rounded shadow-lg pt-2 border-b-4 border-gray-700 relative;
+}

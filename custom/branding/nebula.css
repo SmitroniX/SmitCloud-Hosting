@@ -247,13 +247,22 @@ select:focus {
 }
 
 /* Terminal & Console Box */
-div:has(> .xterm),
 .xterm,
 .xterm-viewport,
-div[class*="ServerConsoleContainer"] > div {
+.xterm-screen {
     background: #05070d !important;
-    border-radius: var(--nebula-radius) !important;
     font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Ensure no text clipping or iOS zoom on command input */
+input[class*="command_input"] {
+    font-size: 14px !important;
+}
+
+@media (max-width: 640px) {
+    input[class*="command_input"] {
+        font-size: 16px !important; /* Prevents auto-zoom on iOS */
+    }
 }
 
 /* Code Mirror Editors */
