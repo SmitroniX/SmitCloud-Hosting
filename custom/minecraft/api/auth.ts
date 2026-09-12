@@ -7,6 +7,7 @@ import http from '@/api/http';
 export interface HybridAuthStatus {
     hasFastLogin: boolean;
     hasAuthMe: boolean;
+    hasProtocolLib: boolean;
     hasFloodgate: boolean;
     hasSkinsRestorer: boolean;
     isOfflineMode: boolean;
@@ -36,6 +37,7 @@ export const DEFAULT_AUTH_SETTINGS: HybridAuthSettings = {
 export const checkHybridAuthStatus = async (uuid: string): Promise<HybridAuthStatus> => {
     let hasFastLogin = false;
     let hasAuthMe = false;
+    let hasProtocolLib = false;
     let hasFloodgate = false;
     let hasSkinsRestorer = false;
     let isOfflineMode = false;
@@ -44,6 +46,7 @@ export const checkHybridAuthStatus = async (uuid: string): Promise<HybridAuthSta
         const files: FileObject[] = await loadDirectory(uuid, '/plugins');
         hasFastLogin = files.some((f) => f.name.toLowerCase().includes('fastlogin'));
         hasAuthMe = files.some((f) => f.name.toLowerCase().includes('authme'));
+        hasProtocolLib = files.some((f) => f.name.toLowerCase().includes('protocollib'));
         hasFloodgate = files.some((f) => f.name.toLowerCase().includes('floodgate'));
         hasSkinsRestorer = files.some((f) => f.name.toLowerCase().includes('skinsrestorer'));
     } catch {
@@ -57,11 +60,12 @@ export const checkHybridAuthStatus = async (uuid: string): Promise<HybridAuthSta
         isOfflineMode = false;
     }
 
-    const isFullyConfigured = hasFastLogin && hasAuthMe && isOfflineMode;
+    const isFullyConfigured = hasFastLogin && hasAuthMe && hasProtocolLib && isOfflineMode;
 
     return {
         hasFastLogin,
         hasAuthMe,
+        hasProtocolLib,
         hasFloodgate,
         hasSkinsRestorer,
         isOfflineMode,
@@ -110,17 +114,34 @@ autoLogin: ${settings.mojangAutoLogin}
 
 # Automatically register verified premium players in AuthMe
 autoRegister: true
+auto-register-unknown: true
 
 # Preserves official Mojang UUIDs instead of offline-mode UUIDs
-premium-uuid: true
+premiumUuid: true
 
 # Support Bedrock players via Floodgate (Xbox Live auto-login)
-floodgate-support: ${settings.bedrockAutoLogin}
+autoLoginFloodgate: ${settings.bedrockAutoLogin}
+allowFloodgateNameConflict: true
+autoRegisterFloodgate: ${settings.bedrockAutoLogin}
 
-# In-game notification messages
-messages:
-  auto-login: "&b&l${settings.serverBrandingName.toUpperCase()} &8» &a✔ Official Mojang account detected! Logged in automatically."
-  premium-warning: "&e&l${settings.serverBrandingName.toUpperCase()} &8» &eNotice: This username is registered with Mojang."
+# Skin forwarding
+forwardSkin: ${settings.restoreSkins}
+kick-toggle: true
+verifyClientKeys: false
+
+# Database configuration
+driver: 'sqlite'
+database: '{pluginDir}/FastLogin.db'
+`;
+};
+
+export const generateFastLoginMessages = (settings: HybridAuthSettings): string => {
+    const brand = settings.serverBrandingName.toUpperCase();
+    return `# FastLogin localization — ${settings.serverBrandingName} Luxury Edition
+auto-login: '&b&l${brand} &8» &a✔ Official Mojang account detected! Logged in automatically.'
+auto-register: '&b&l${brand} &8» &a✔ Premium account secured & registered.'
+add-premium: '&b&l${brand} &8» &a✔ Added to verified premium players list.'
+premium-warning: '&e&l${brand} &8» &c&lWARNING: &6Only run this command if you are the owner of this official Minecraft account. Type &a/premium&6 again to confirm.'
 `;
 };
 
@@ -170,39 +191,46 @@ export const applyHybridAuthSuite = async (uuid: string, settings: HybridAuthSet
     // 1. Configure server.properties to offline-mode=false
     await configureServerPropertiesOfflineMode(uuid);
 
-    // 2. Install FastLogin Bukkit
+    // 2. Install ProtocolLib (Essential for FastLogin packet interception on Paper/Spigot)
     await installPluginJar(
         uuid,
-        'https://github.com/TuxCoding/FastLogin/releases/download/1.12-kick-toggle/FastLoginBukkit.jar',
+        'https://hosting.smitronix.dev/downloads/plugins/ProtocolLib.jar',
+        'ProtocolLib.jar'
+    );
+
+    // 3. Install FastLogin Bukkit
+    await installPluginJar(
+        uuid,
+        'https://hosting.smitronix.dev/downloads/plugins/FastLoginBukkit.jar',
         'FastLoginBukkit.jar'
     );
 
-    // 3. Install AuthMe Reloaded
+    // 4. Install AuthMe Reloaded
     await installPluginJar(
         uuid,
-        'https://github.com/AuthMe/AuthMeReloaded/releases/download/6.0.1/AuthMe-6.0.1-Spigot-1.21.jar',
+        'https://hosting.smitronix.dev/downloads/plugins/AuthMe-6.0.1-Spigot.jar',
         'AuthMe-6.0.1-Spigot.jar'
     );
 
-    // 4. Install Floodgate for Bedrock Xbox Auto-Login
+    // 5. Install Floodgate for Bedrock Xbox Auto-Login
     if (settings.bedrockAutoLogin) {
         await installPluginJar(
             uuid,
-            'https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot',
+            'https://hosting.smitronix.dev/downloads/plugins/floodgate-spigot.jar',
             'floodgate-spigot.jar'
         );
     }
 
-    // 5. Install SkinsRestorer for universal skin display
+    // 6. Install SkinsRestorer for universal skin display
     if (settings.restoreSkins) {
         await installPluginJar(
             uuid,
-            'https://github.com/SkinsRestorer/SkinsRestorer/releases/download/15.12.5/SkinsRestorer.jar',
+            'https://hosting.smitronix.dev/downloads/plugins/SkinsRestorer.jar',
             'SkinsRestorer.jar'
         );
     }
 
-    // 6. Generate configuration directories & files
+    // 7. Generate configuration directories & files
     try {
         await createDirectory(uuid, '/plugins', 'FastLogin');
     } catch {
@@ -217,6 +245,9 @@ export const applyHybridAuthSuite = async (uuid: string, settings: HybridAuthSet
 
     const fastLoginYaml = generateFastLoginConfig(settings);
     await saveFileContents(uuid, '/plugins/FastLogin/config.yml', fastLoginYaml);
+
+    const fastLoginMessages = generateFastLoginMessages(settings);
+    await saveFileContents(uuid, '/plugins/FastLogin/messages.yml', fastLoginMessages);
 
     let existingAuthMe: string | undefined = undefined;
     try {

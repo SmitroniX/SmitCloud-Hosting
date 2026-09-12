@@ -35,6 +35,7 @@ export default () => {
     const [status, setStatus] = useState<HybridAuthStatus>({
         hasFastLogin: false,
         hasAuthMe: false,
+        hasProtocolLib: false,
         hasFloodgate: false,
         hasSkinsRestorer: false,
         isOfflineMode: false,
@@ -141,11 +142,17 @@ export default () => {
                     </div>
 
                     {/* Live Engine Status Grid */}
-                    <div className={'grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-neutral-800/80 text-xs'}>
+                    <div className={'grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6 pt-6 border-t border-neutral-800/80 text-xs'}>
                         <div className={'rounded-2xl bg-neutral-950/60 border border-neutral-800/70 p-3.5'}>
                             <span className={'text-neutral-500 block text-[10px] uppercase font-bold'}>Mojang Java Handshake</span>
                             <span className={classNames('text-sm font-black mt-0.5 block', status.hasFastLogin ? 'text-emerald-400' : 'text-neutral-400')}>
                                 {status.hasFastLogin ? '🟢 FastLogin Active' : '⚪ Not Installed'}
+                            </span>
+                        </div>
+                        <div className={'rounded-2xl bg-neutral-950/60 border border-neutral-800/70 p-3.5'}>
+                            <span className={'text-neutral-500 block text-[10px] uppercase font-bold'}>Packet Interceptor</span>
+                            <span className={classNames('text-sm font-black mt-0.5 block', status.hasProtocolLib ? 'text-emerald-400' : 'text-neutral-400')}>
+                                {status.hasProtocolLib ? '🟢 ProtocolLib Armed' : '⚪ Not Installed'}
                             </span>
                         </div>
                         <div className={'rounded-2xl bg-neutral-950/60 border border-neutral-800/70 p-3.5'}>
