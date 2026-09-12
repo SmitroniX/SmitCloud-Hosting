@@ -1,0 +1,353 @@
+/* ==============================================================================
+ * SmitCloud Nebula UI / UX Theme for Pterodactyl
+ * Inspired by Noctis Nebula: Futuristic, Dark Glassmorphism, Neon Accents
+ * ============================================================================== */
+
+:root {
+    --nebula-bg-deep: #07090e;
+    --nebula-bg-base: #0b0f19;
+    --nebula-bg-card: rgba(15, 23, 42, 0.75);
+    --nebula-bg-card-hover: rgba(22, 33, 56, 0.85);
+    --nebula-bg-glass: rgba(11, 17, 32, 0.65);
+    --nebula-border: rgba(255, 255, 255, 0.08);
+    --nebula-border-glow: rgba(56, 189, 248, 0.35);
+    --nebula-cyan: #38bdf8;
+    --nebula-blue: #3b82f6;
+    --nebula-indigo: #6366f1;
+    --nebula-purple: #8b5cf6;
+    --nebula-green: #10b981;
+    --nebula-red: #ef4444;
+    --nebula-yellow: #f59e0b;
+    --nebula-glow-blue: 0 0 25px -5px rgba(56, 189, 248, 0.35);
+    --nebula-radius: 14px;
+}
+
+/* Global Font & Cosmic Atmosphere */
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    background-color: var(--nebula-bg-deep) !important;
+    background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.12), transparent 70%),
+        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(99, 102, 241, 0.08), transparent 60%),
+        radial-gradient(ellipse 50% 30% at 10% 90%, rgba(139, 92, 246, 0.06), transparent 50%) !important;
+    background-attachment: fixed !important;
+    color: #e2e8f0 !important;
+    min-height: 100vh;
+}
+
+/* Nebula Custom Thin Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(11, 15, 25, 0.5);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+    transition: background 0.2s ease;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--nebula-cyan);
+    box-shadow: 0 0 10px var(--nebula-cyan);
+}
+
+/* Top Navigation Bar - Nebula Frosted Glass */
+#logo + div,
+nav,
+div.bg-neutral-900:has(#logo),
+div:has(> div > #logo) {
+    background: rgba(11, 15, 25, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid var(--nebula-border) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+#logo a {
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    background: linear-gradient(135deg, #ffffff 30%, var(--nebula-cyan) 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    text-shadow: 0 0 30px rgba(56, 189, 248, 0.3) !important;
+}
+
+/* Server SubNavigation (Console, Files, Databases tabs) */
+div.bg-neutral-700:has(a[href*="/server/"]) {
+    background: rgba(15, 23, 42, 0.65) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-bottom: 1px solid var(--nebula-border) !important;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+}
+
+/* SubNavigation Links with Neon Glow Pills */
+div.bg-neutral-700 a,
+div:has(> div > #logo) a.active,
+div:has(> div > #logo) a:hover {
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+}
+
+div.bg-neutral-700 a.active {
+    background: rgba(56, 189, 248, 0.12) !important;
+    color: var(--nebula-cyan) !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+    box-shadow: 0 0 15px -3px rgba(56, 189, 248, 0.25) !important;
+}
+
+/* Nebula Glassmorphic Cards (GreyRowBox & TitledGreyBox) */
+div[class*="GreyRowBox"],
+div[class*="TitledGreyBox"],
+div[class*="ContentContainer"] > div.bg-neutral-700,
+div[class*="ContentContainer"] > div.bg-neutral-800 {
+    background: var(--nebula-bg-card) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid var(--nebula-border) !important;
+    border-radius: var(--nebula-radius) !important;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Card Hover Glow */
+div[class*="GreyRowBox"]:hover {
+    border-color: var(--nebula-border-glow) !important;
+    box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.6), var(--nebula-glow-blue) !important;
+    transform: translateY(-2px);
+}
+
+/* Titled Grey Box Header */
+div[class*="TitledGreyBox"] > div:first-child {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-bottom: 1px solid var(--nebula-border) !important;
+    border-top-left-radius: var(--nebula-radius) !important;
+    border-top-right-radius: var(--nebula-radius) !important;
+    padding: 1rem 1.25rem !important;
+}
+
+div[class*="TitledGreyBox"] > div:first-child p,
+div[class*="TitledGreyBox"] > div:first-child h2 {
+    font-weight: 600 !important;
+    color: #f8fafc !important;
+    letter-spacing: -0.01em !important;
+}
+
+/* Server Card / Status Indicator Box (Dashboard Server Rows) */
+div[class*="StatusIndicatorBox"] {
+    background: var(--nebula-bg-card) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid var(--nebula-border) !important;
+    border-radius: var(--nebula-radius) !important;
+    padding: 1.25rem !important;
+    position: relative !important;
+    overflow: hidden !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+div[class*="StatusIndicatorBox"]:hover {
+    border-color: var(--nebula-border-glow) !important;
+    box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.7), var(--nebula-glow-blue) !important;
+    transform: translateY(-3px) scale(1.005);
+}
+
+/* Status Bar Glow on Server Cards */
+div[class*="StatusIndicatorBox"] .status-bar {
+    width: 4px !important;
+    border-radius: 9999px !important;
+    opacity: 0.9 !important;
+    box-shadow: 0 0 12px currentColor !important;
+}
+
+/* Glowing Pulse Animation for Online Status */
+@keyframes nebula-pulse-green {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6), 0 0 12px rgba(16, 185, 129, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0), 0 0 18px rgba(16, 185, 129, 0.8);
+    }
+}
+
+.status-bar.bg-green-500,
+div[class*="StatusIndicatorBox"] .status-bar[class*="bg-green"] {
+    animation: nebula-pulse-green 2s infinite !important;
+}
+
+/* Buttons - Modern Nebula Gradient */
+button[class*="Button___StyledButton"]:not([class*="isSecondary"]),
+button[type="submit"]:not([class*="isSecondary"]),
+a[class*="Button___StyledButton"]:not([class*="isSecondary"]) {
+    background: linear-gradient(135deg, #2563eb 0%, #0284c7 100%) !important;
+    border: 1px solid rgba(56, 189, 248, 0.4) !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px -3px rgba(37, 99, 235, 0.4) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+button[class*="Button___StyledButton"]:not([class*="isSecondary"]):hover,
+button[type="submit"]:not([class*="isSecondary"]):hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #0369a1 100%) !important;
+    border-color: var(--nebula-cyan) !important;
+    box-shadow: 0 6px 20px -2px rgba(56, 189, 248, 0.5), var(--nebula-glow-blue) !important;
+    transform: translateY(-1px);
+}
+
+button[class*="Button___StyledButton"]:not([class*="isSecondary"]):active,
+button[type="submit"]:not([class*="isSecondary"]):active {
+    transform: translateY(0) scale(0.98);
+}
+
+/* Secondary Buttons - Glassmorphic */
+button[class*="isSecondary"],
+button.isSecondary {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 10px !important;
+    color: #cbd5e1 !important;
+    transition: all 0.2s ease !important;
+}
+
+button[class*="isSecondary"]:hover,
+button.isSecondary:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+}
+
+/* Form Inputs & Selects */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+textarea,
+select {
+    background: rgba(15, 23, 42, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 10px !important;
+    color: #f8fafc !important;
+    font-size: 0.875rem !important;
+    padding: 0.75rem 1rem !important;
+    transition: all 0.2s ease !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--nebula-cyan) !important;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25), 0 0 15px -3px rgba(56, 189, 248, 0.2) !important;
+    outline: none !important;
+}
+
+/* Terminal & Console Box */
+div:has(> .xterm),
+.xterm,
+.xterm-viewport,
+div[class*="ServerConsoleContainer"] > div {
+    background: #05070d !important;
+    border-radius: var(--nebula-radius) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Code Mirror Editors */
+.CodeMirror {
+    background: #060911 !important;
+    border: 1px solid var(--nebula-border) !important;
+    border-radius: var(--nebula-radius) !important;
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Modals & Dialogs */
+div[class*="Dialog___StyledDiv"],
+div[class*="Modal"] {
+    background: rgba(15, 23, 42, 0.92) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border: 1px solid var(--nebula-border-glow) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), var(--nebula-glow-blue) !important;
+}
+
+/* Nebula Brand Badge */
+.nebula-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.675rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(56, 189, 248, 0.1);
+    color: var(--nebula-cyan);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    box-shadow: 0 0 15px -3px rgba(56, 189, 248, 0.3);
+}
+
+/* ==============================================================================
+ * Nebula Auth / Login Page Styles
+ * ============================================================================== */
+.nebula-auth-card {
+    background: rgba(15, 23, 42, 0.85) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 35px -5px rgba(56, 189, 248, 0.2) !important;
+}
+
+.nebula-auth-card label {
+    color: #cbd5e1 !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    text-transform: uppercase !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.nebula-auth-card input {
+    background: rgba(10, 15, 26, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 12px !important;
+    color: #ffffff !important;
+    padding: 0.85rem 1.1rem !important;
+    font-size: 0.95rem !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.nebula-auth-card input:focus {
+    border-color: var(--nebula-cyan) !important;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25), 0 0 20px -3px rgba(56, 189, 248, 0.35) !important;
+    background: rgba(12, 19, 34, 0.95) !important;
+}
+
+.nebula-auth-card .input-help {
+    color: #94a3b8 !important;
+    font-size: 0.75rem !important;
+    margin-top: 0.35rem !important;
+}
+
+.nebula-auth-card .input-help.error {
+    color: #f87171 !important;
+}
+
+.nebula-auth-card a,
+.nebula-auth-card span[class*="cursor-pointer"] {
+    color: #94a3b8 !important;
+    transition: all 0.2s ease !important;
+}
+
+.nebula-auth-card a:hover,
+.nebula-auth-card span[class*="cursor-pointer"]:hover {
+    color: var(--nebula-cyan) !important;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+

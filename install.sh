@@ -615,16 +615,24 @@ apply_smitcloud_customizations() {
 
     if [[ -d "${CUSTOM_DIR}" ]]; then
         [[ -f "${CUSTOM_DIR}/branding/LoginFormContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/branding/LoginFormContainer.tsx" /var/www/pterodactyl/resources/scripts/components/auth/
+        [[ -f "${CUSTOM_DIR}/branding/LoginContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/branding/LoginContainer.tsx" /var/www/pterodactyl/resources/scripts/components/auth/
+        [[ -f "${CUSTOM_DIR}/branding/ForgotPasswordContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/branding/ForgotPasswordContainer.tsx" /var/www/pterodactyl/resources/scripts/components/auth/
+        [[ -f "${CUSTOM_DIR}/branding/NavigationBar.tsx" ]] && cp -f "${CUSTOM_DIR}/branding/NavigationBar.tsx" /var/www/pterodactyl/resources/scripts/components/
         [[ -f "${CUSTOM_DIR}/branding/PageContentBlock.tsx" ]] && cp -f "${CUSTOM_DIR}/branding/PageContentBlock.tsx" /var/www/pterodactyl/resources/scripts/components/elements/
         [[ -f "${CUSTOM_DIR}/branding/wrapper.blade.php" ]] && cp -f "${CUSTOM_DIR}/branding/wrapper.blade.php" /var/www/pterodactyl/resources/views/templates/
+        [[ -f "${CUSTOM_DIR}/branding/nebula.css" ]] && cp -f "${CUSTOM_DIR}/branding/nebula.css" /var/www/pterodactyl/public/nebula.css
         [[ -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/
         [[ -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/players/PlayerManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/
         [[ -f "${CUSTOM_DIR}/minecraft/api/players.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/players.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" /var/www/pterodactyl/resources/scripts/routers/routes.ts
     else
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/auth/LoginFormContainer.tsx "${REPO_RAW}/custom/branding/LoginFormContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/auth/LoginContainer.tsx "${REPO_RAW}/custom/branding/LoginContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/auth/ForgotPasswordContainer.tsx "${REPO_RAW}/custom/branding/ForgotPasswordContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/NavigationBar.tsx "${REPO_RAW}/custom/branding/NavigationBar.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/elements/PageContentBlock.tsx "${REPO_RAW}/custom/branding/PageContentBlock.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/views/templates/wrapper.blade.php "${REPO_RAW}/custom/branding/wrapper.blade.php" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/public/nebula.css "${REPO_RAW}/custom/branding/nebula.css" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/PropertiesEditorContainer.tsx "${REPO_RAW}/custom/minecraft/properties/PropertiesEditorContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/players/PlayerManagerContainer.tsx "${REPO_RAW}/custom/minecraft/players/PlayerManagerContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/players.ts "${REPO_RAW}/custom/minecraft/api/players.ts" || true
