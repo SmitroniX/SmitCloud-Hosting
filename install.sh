@@ -513,14 +513,18 @@ EOF
 
     # Configure Firewall
     if command -v ufw &>/dev/null; then
-        log_info "Configuring UFW firewall rules for Wings..."
+        log_info "Configuring UFW firewall rules for Wings & Game Ports..."
         ufw allow 80/tcp >/dev/null 2>&1 || true
         ufw allow 443/tcp >/dev/null 2>&1 || true
         ufw allow 8080/tcp comment 'Pterodactyl Wings Daemon' >/dev/null 2>&1 || true
         ufw allow 2022/tcp comment 'Pterodactyl Wings SFTP' >/dev/null 2>&1 || true
-        ufw allow 25565:25600/tcp comment 'Game Server Ports' >/dev/null 2>&1 || true
-        ufw allow 25565:25600/udp comment 'Game Server Ports' >/dev/null 2>&1 || true
-        log_success "Firewall ports 80, 443, 8080, 2022, 25565-25600 opened."
+        ufw allow 25565:25600/tcp comment 'Minecraft Java Ports (TCP)' >/dev/null 2>&1 || true
+        ufw allow 25565:25600/udp comment 'Game Server Ports (UDP)' >/dev/null 2>&1 || true
+        ufw allow 19132:19150/udp comment 'Minecraft Bedrock / Geyser (UDP)' >/dev/null 2>&1 || true
+        ufw allow 19132:19150/tcp comment 'Minecraft Bedrock / Geyser (TCP)' >/dev/null 2>&1 || true
+        ufw allow 24454/udp comment 'Minecraft Simple Voice Chat' >/dev/null 2>&1 || true
+        ufw allow 8123/tcp comment 'Minecraft Web Map (Dynmap)' >/dev/null 2>&1 || true
+        log_success "Firewall ports 80, 443, 8080, 2022, 25565-25600, 19132-19150, 24454, 8123 configured."
     fi
 }
 
@@ -618,6 +622,7 @@ apply_smitcloud_customizations() {
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/health
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/discord
     mkdir -p /var/www/pterodactyl/resources/scripts/components/server/minecraft/ddos
+    mkdir -p /var/www/pterodactyl/resources/scripts/components/server/network
     mkdir -p /var/www/pterodactyl/resources/scripts/api/server/minecraft
     mkdir -p /var/www/pterodactyl/resources/scripts/plugins
 
@@ -632,6 +637,9 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/console/Console.tsx" ]] && cp -f "${CUSTOM_DIR}/console/Console.tsx" /var/www/pterodactyl/resources/scripts/components/server/console/
         [[ -f "${CUSTOM_DIR}/console/style.module.css" ]] && cp -f "${CUSTOM_DIR}/console/style.module.css" /var/www/pterodactyl/resources/scripts/components/server/console/
         [[ -f "${CUSTOM_DIR}/plugins/XtermScrollDownHelperAddon.ts" ]] && cp -f "${CUSTOM_DIR}/plugins/XtermScrollDownHelperAddon.ts" /var/www/pterodactyl/resources/scripts/plugins/
+        [[ -f "${CUSTOM_DIR}/network/NetworkContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/network/NetworkContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/network/
+        [[ -f "${CUSTOM_DIR}/network/AllocationRow.tsx" ]] && cp -f "${CUSTOM_DIR}/network/AllocationRow.tsx" /var/www/pterodactyl/resources/scripts/components/server/network/
+        [[ -f "${CUSTOM_DIR}/network/MinecraftPortHero.tsx" ]] && cp -f "${CUSTOM_DIR}/network/MinecraftPortHero.tsx" /var/www/pterodactyl/resources/scripts/components/server/network/
         [[ -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/properties/PropertiesEditorContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/
         [[ -f "${CUSTOM_DIR}/minecraft/geyser/GeyserManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/geyser/GeyserManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/geyser/
         [[ -f "${CUSTOM_DIR}/minecraft/versions/VersionManagerContainer.tsx" ]] && cp -f "${CUSTOM_DIR}/minecraft/versions/VersionManagerContainer.tsx" /var/www/pterodactyl/resources/scripts/components/server/minecraft/versions/
@@ -651,6 +659,7 @@ apply_smitcloud_customizations() {
         [[ -f "${CUSTOM_DIR}/minecraft/api/health.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/health.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/api/discord.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/discord.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/api/ddos.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/ddos.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
+        [[ -f "${CUSTOM_DIR}/minecraft/api/portSync.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/api/portSync.ts" /var/www/pterodactyl/resources/scripts/api/server/minecraft/
         [[ -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" ]] && cp -f "${CUSTOM_DIR}/minecraft/routes/routes.ts" /var/www/pterodactyl/resources/scripts/routers/routes.ts
     else
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/auth/LoginFormContainer.tsx "${REPO_RAW}/custom/branding/LoginFormContainer.tsx" || true
@@ -663,6 +672,9 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/console/Console.tsx "${REPO_RAW}/custom/console/Console.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/console/style.module.css "${REPO_RAW}/custom/console/style.module.css" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/plugins/XtermScrollDownHelperAddon.ts "${REPO_RAW}/custom/plugins/XtermScrollDownHelperAddon.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/network/NetworkContainer.tsx "${REPO_RAW}/custom/network/NetworkContainer.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/network/AllocationRow.tsx "${REPO_RAW}/custom/network/AllocationRow.tsx" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/network/MinecraftPortHero.tsx "${REPO_RAW}/custom/network/MinecraftPortHero.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/properties/PropertiesEditorContainer.tsx "${REPO_RAW}/custom/minecraft/properties/PropertiesEditorContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/geyser/GeyserManagerContainer.tsx "${REPO_RAW}/custom/minecraft/geyser/GeyserManagerContainer.tsx" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/components/server/minecraft/versions/VersionManagerContainer.tsx "${REPO_RAW}/custom/minecraft/versions/VersionManagerContainer.tsx" || true
@@ -682,6 +694,7 @@ apply_smitcloud_customizations() {
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/health.ts "${REPO_RAW}/custom/minecraft/api/health.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/discord.ts "${REPO_RAW}/custom/minecraft/api/discord.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/ddos.ts "${REPO_RAW}/custom/minecraft/api/ddos.ts" || true
+        curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/api/server/minecraft/portSync.ts "${REPO_RAW}/custom/minecraft/api/portSync.ts" || true
         curl -sSL --connect-timeout 10 -o /var/www/pterodactyl/resources/scripts/routers/routes.ts "${REPO_RAW}/custom/minecraft/routes/routes.ts" || true
     fi
 
@@ -701,7 +714,50 @@ apply_smitcloud_customizations() {
     php artisan config:clear 2>/dev/null || true
     chown -R www-data:www-data /var/www/pterodactyl
 
+    seed_node_allocations
+
     log_success "SmitCloud Branding and Minecraft Tools applied!"
+}
+
+seed_node_allocations() {
+    log_info "Pre-seeding Minecraft Java (25565-25575) and Bedrock (19132-19142) allocations on Node 1..."
+    if [[ -f "/var/www/pterodactyl/.env" ]]; then
+        local db_host db_user db_pass db_name
+        db_host=$(grep '^DB_HOST=' /var/www/pterodactyl/.env | head -n1 | cut -d '=' -f2-)
+        db_user=$(grep '^DB_USERNAME=' /var/www/pterodactyl/.env | head -n1 | cut -d '=' -f2-)
+        db_pass=$(grep '^DB_PASSWORD=' /var/www/pterodactyl/.env | head -n1 | cut -d '=' -f2-)
+        db_name=$(grep '^DB_DATABASE=' /var/www/pterodactyl/.env | head -n1 | cut -d '=' -f2-)
+
+        mariadb -h "$db_host" -u "$db_user" -p"$db_pass" "$db_name" 2>/dev/null << 'EOF' || true
+INSERT IGNORE INTO allocations (node_id, ip, port, ip_alias, server_id, notes, created_at, updated_at)
+SELECT 1, '0.0.0.0', port_num, NULL, NULL, note_val, NOW(), NOW()
+FROM (
+    SELECT 25565 AS port_num, 'Minecraft Java (Primary)' AS note_val UNION ALL
+    SELECT 25566, 'Minecraft Java (TCP)' UNION ALL
+    SELECT 25567, 'Minecraft Java (TCP)' UNION ALL
+    SELECT 25568, 'Minecraft Java (TCP)' UNION ALL
+    SELECT 25569, 'Minecraft Java (TCP)' UNION ALL
+    SELECT 25570, 'Minecraft Java (TCP)' UNION ALL
+    SELECT 25571, 'Minecraft Java (TCP)' UNION ALL
+    SELECT 25572, 'Minecraft Java (TCP)' UNION ALL
+    SELECT 25573, 'Minecraft Java (TCP)' UNION ALL
+    SELECT 25574, 'Minecraft Java (TCP)' UNION ALL
+    SELECT 25575, 'Minecraft Java (TCP)' UNION ALL
+    SELECT 19132, 'Bedrock / Geyser (UDP)' UNION ALL
+    SELECT 19133, 'Bedrock / Geyser (UDP)' UNION ALL
+    SELECT 19134, 'Bedrock / Geyser (UDP)' UNION ALL
+    SELECT 19135, 'Bedrock / Geyser (UDP)' UNION ALL
+    SELECT 19136, 'Bedrock / Geyser (UDP)' UNION ALL
+    SELECT 19137, 'Bedrock / Geyser (UDP)' UNION ALL
+    SELECT 19138, 'Bedrock / Geyser (UDP)' UNION ALL
+    SELECT 19139, 'Bedrock / Geyser (UDP)' UNION ALL
+    SELECT 19140, 'Bedrock / Geyser (UDP)' UNION ALL
+    SELECT 24454, 'Simple Voice Chat (UDP)' UNION ALL
+    SELECT 8123, 'Dynmap / Web Map (TCP)'
+) AS tmp
+WHERE EXISTS (SELECT 1 FROM nodes WHERE id = 1);
+EOF
+    fi
 }
 
 install_egg_library() {
